@@ -3,7 +3,7 @@
 Thematic Project for 6G5Z0023.
 
 ## Tech Stack
-- Frontend: TBC
+- Frontend: Vue
 - Backend: Supabase (Auth, Postgres, RLS)
 
 ## Project Status
