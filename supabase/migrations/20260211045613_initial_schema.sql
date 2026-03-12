@@ -95,6 +95,32 @@ create table reports (
 );
 
 
+-- INDEXES (for faster queries)
+create index idx_posts_user_id on posts(user_id);
+
+create index idx_friend_requests_receiver 
+on friend_requests(receiver_id);
+
+create index idx_direct_messages_receiver 
+on direct_messages(receiver_id);
+
+create index idx_post_comments_post 
+on post_comments(post_id);
+
+create index idx_post_likes_post 
+on post_likes(post_id);
+
+
+-- SEED INTERESTS / FAVOURITE CARDS. Deafult values
+
+insert into user_interests (user_id, interest)
+values
+('00000000-0000-0000-0000-000000000000', 'Pokemon'),
+('00000000-0000-0000-0000-000000000000', 'Yu-Gi-Oh'),
+('00000000-0000-0000-0000-000000000000', 'Magic: The Gathering'),
+('00000000-0000-0000-0000-000000000000', 'Dragon Ball'),
+('00000000-0000-0000-0000-000000000000', 'One Piece');
+
 alter table profiles enable row level security;
 alter table user_interests enable row level security;
 alter table friend_requests enable row level security;
