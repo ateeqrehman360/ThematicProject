@@ -3,12 +3,12 @@ import { supabase } from "../lib/supabaseClient.js"
 
 /**
  * Get user profile by ID
- * @param {number} userId - The user ID to fetch
+ * @param {string} userId- The user ID to fetch
  * @returns {object} Standardised response
  */
 export async function getProfile(userId) {
   const { data, error } = await supabase
-    .from("users")      // Table name
+    .from("profiles")    // Table name
     .select("*")        // Get all columns
     .eq("user_id", userId) // Where user_id = given ID
     .single()           // Only one result

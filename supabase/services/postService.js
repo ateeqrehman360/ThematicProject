@@ -2,7 +2,7 @@ import { supabase } from "../lib/supabaseClient.js"
 
 /**
  * Create a new post
- * @param {number} userId - ID of the user creating the post
+ * @param {string} userId - ID of the user creating the post
  * @param {string} content - Text content of the post
  */
 export async function createPost(userId, content) {
