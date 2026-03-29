@@ -60,6 +60,11 @@ const routes: RouteRecordRaw[] = [
     name: 'Friends',
     component: () => import('@/views/FriendsView.vue'),
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/styleguide',
+    name: 'StyleGuide',
+    component: () => import('@/views/StyleGuide.vue')
   }
 ]
 
