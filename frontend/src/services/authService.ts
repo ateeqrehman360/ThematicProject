@@ -41,6 +41,27 @@ export const authService = {
       }
     })
     if (error) throw error
+
+    const user = data.user
+    if (!user) {
+      throw new Error('User created but no user returned')
+    }
+
+    const username = `${payload.firstName} ${payload.lastName}`.trim()
+
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .insert({
+        id: user.id,
+        username,
+        bio: '',
+        city: '',
+        area: '',
+        is_private: false
+      })
+
+    if (profileError) throw profileError
+
     return data
   },
 
