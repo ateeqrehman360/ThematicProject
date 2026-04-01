@@ -1,12 +1,15 @@
 export interface User {
-  userId: number
-  fullName: string
+  id: string
   username: string
   bio: string
-  avatarUrl: string
-  location: string
-  tcgInterests: string[]
-  favouriteCards: string[]
+  city?: string
+  area?: string
+  is_private?: boolean
+  avatarUrl?: string
+  fullName?: string
+  location?: string
+  tcgInterests?: string[]
+  favouriteCards?: string[]
   gender?: string
   email?: string
   phoneNumber?: string

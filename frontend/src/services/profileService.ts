@@ -5,6 +5,7 @@ export const profileService = {
   // Simple function to fetch a single profile by user ID
   async getProfile(userId: string) {
     try {
+      console.log('profileService.getProfile called with:', userId)
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
