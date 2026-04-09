@@ -69,10 +69,10 @@ import { supabase } from '@/services/supabaseClient'
 import { useUserStore } from '@/stores/userStore'
 
 interface Props {
-  userId: number
+  userId: string
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 
 const userStore = useUserStore()
 const showModal = ref(false)
@@ -89,16 +89,13 @@ const handleSubmit = async () => {
 
   try {
     await supabase.from('reports').insert({
-      reporter_id: userStore.profile.userId,
+      reporter_id: userStore.profile.id,
       reported_user_id: props.userId,
-      reason: reason.value,
-      description: description.value,
-      status: 'pending'
+      reason: reason.value
     })
 
     showModal.value = false
     reason.value = ''
-    description.value = ''
   } catch (err: any) {
     error.value = err.message || 'Failed to submit report'
   } finally {

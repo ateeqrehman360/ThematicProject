@@ -2,15 +2,17 @@
   <div class="divide-y">
     <button
       v-for="conversation in conversations"
-      :key="conversation.userId"
-      @click="emit('select', conversation.userId)"
+      :key="conversation.id"
+      @click="emit('select', conversation.id)"
       class="w-full text-left p-4 hover:bg-gray-50 transition-colors"
     >
       <div class="flex items-center gap-3">
-        <img :src="conversation.userAvatar" :alt="conversation.userName" class="w-12 h-12 rounded-full object-cover flex-shrink-0" />
+        <div class="w-12 h-12 rounded-full bg-indigo-200 flex items-center justify-center text-indigo-700 font-semibold flex-shrink-0">
+          {{ conversation.username.charAt(0).toUpperCase() }}
+        </div>
         <div class="flex-1 min-w-0">
           <div class="flex items-center justify-between gap-2">
-            <h3 class="font-semibold text-gray-900 truncate">{{ conversation.userName }}</h3>
+            <h3 class="font-semibold text-gray-900 truncate">{{ conversation.username }}</h3>
             <span v-if="conversation.unreadCount > 0" class="inline-block w-5 h-5 bg-indigo-600 text-white text-xs rounded-full flex items-center justify-center flex-shrink-0">
               {{ conversation.unreadCount }}
             </span>
@@ -31,11 +33,11 @@ interface Props {
 }
 
 interface Emits {
-  (e: 'select', userId: number): void
+  (e: 'select', userId: string): void
 }
 
-defineProps<Props>()
-defineEmits<Emits>()
+const props = defineProps<Props>()
+const emit = defineEmits<Emits>()
 
 const formatTime = (timestamp: string) => {
   const date = new Date(timestamp)

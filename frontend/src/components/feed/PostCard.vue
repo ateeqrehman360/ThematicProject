@@ -1,19 +1,19 @@
 <template>
   <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all">
-    <router-link :to="`/profile/${post.authorId}`" class="block p-4 border-b border-gray-200 hover:bg-gray-50">
+    <router-link :to="`/profile/${post.user_id}`" class="block p-4 border-b border-gray-200 hover:bg-gray-50">
       <div class="flex items-center gap-3">
-        <img :src="post.authorAvatar" :alt="post.authorName" class="w-10 h-10 rounded-full object-cover" />
+        <div class="w-10 h-10 rounded-full bg-indigo-200 flex items-center justify-center text-indigo-700 font-semibold flex-shrink-0">
+          {{ post.author_name.charAt(0).toUpperCase() }}
+        </div>
         <div class="flex-1 min-w-0">
-          <h3 class="font-semibold text-gray-900 truncate">{{ post.authorName }}</h3>
-          <p class="text-xs text-gray-500">{{ formatTime(post.timestamp) }}</p>
+          <h3 class="font-semibold text-gray-900 truncate">{{ post.author_name }}</h3>
+          <p class="text-xs text-gray-500">{{ formatTime(post.created_at) }}</p>
         </div>
       </div>
     </router-link>
 
     <div class="p-4">
       <p class="text-gray-900 mb-3 break-words">{{ post.content }}</p>
-      
-      <img v-if="post.imageUrl" :src="post.imageUrl" :alt="post.authorName" class="w-full rounded-lg mb-4 max-h-96 object-cover" />
 
       <div class="flex gap-4 text-gray-600">
         <button
@@ -52,7 +52,7 @@
     </div>
 
     <div v-if="showComments" class="border-t border-gray-200 p-4 bg-gray-50">
-      <CommentThread :postId="post.postId" />
+      <CommentThread :postId="post.id" />
     </div>
   </div>
 </template>
@@ -68,25 +68,25 @@ interface Props {
 }
 
 interface Emits {
-  (e: 'like', postId: number): void
-  (e: 'delete', postId: number): void
+  (e: 'like', postId: string): void
+  (e: 'delete', postId: string): void
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const userStore = useUserStore()
 const showComments = ref(false)
 
-const isOwnPost = computed(() => userStore.profile?.userId === props.post.authorId)
+const isOwnPost = computed(() => userStore.profile?.id === props.post.user_id)
 
 const handleLike = () => {
-  emit('like', props.post.postId)
+  emit('like', props.post.id)
 }
 
 const handleDelete = async () => {
   if (confirm('Are you sure you want to delete this post?')) {
-    emit('delete', props.post.postId)
+    emit('delete', props.post.id)
   }
 }
 

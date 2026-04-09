@@ -9,37 +9,34 @@ export const REPORT_REASONS: ReportReason[] = [
 ]
 
 export interface Report {
-  reportedUserId?: number
-  reportedPostId?: number
-  reason: ReportReason
-  description?: string
-  reportedAt?: string
-  status?: 'pending' | 'reviewed' | 'resolved'
+  id: string
+  reported_user_id: string
+  reason: string
+  created_at?: string
 }
 
 export interface DiscoveryUser {
-  userId: number
-  fullName: string
+  id: string
   username: string
-  avatarUrl: string
-  location: string
-  tcgInterests: string[]
   bio: string
-}
-
-export interface Store {
-  storeId: number
-  name: string
-  location: string
-  description: string
-  imageUrl?: string
+  city: string | null
+  area: string | null
+  tcg_interests: string[]
 }
 
 export interface Event {
-  eventId: number
+  eventId: string
   name: string
+  description: string
   date: string
   location: string
-  description: string
   tcgType: string
+}
+
+export interface Store {
+  storeId: string
+  name: string
+  description: string
+  location: string
+  imageUrl?: string
 }

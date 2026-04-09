@@ -57,14 +57,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 
 interface Emits {
   (e: 'close'): void
   (e: 'create', content: string, imageUrl?: string): void
 }
 
-defineEmits<Emits>()
+const emit = defineEmits<Emits>()
 
 const content = ref('')
 const imageName = ref('')
@@ -94,9 +94,7 @@ const handleCreate = async () => {
     // In a real app, we'd upload the image first if present
     // For now, just pass empty imageUrl
     emit('create', content.value, '')
-    content.value = ''
-    imageName.value = ''
-    selectedFile.value = null
+    resetForm()
   } catch (err: any) {
     error.value = err.message || 'Failed to create post'
   } finally {
@@ -104,7 +102,30 @@ const handleCreate = async () => {
   }
 }
 
+const resetForm = () => {
+  content.value = ''
+  imageName.value = ''
+  selectedFile.value = null
+  error.value = ''
+}
+
 const closeModal = () => {
+  resetForm()
   emit('close')
 }
+
+// Handle Escape key
+const handleKeyDown = (event: KeyboardEvent) => {
+  if (event.key === 'Escape') {
+    closeModal()
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleKeyDown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeyDown)
+})
 </script>

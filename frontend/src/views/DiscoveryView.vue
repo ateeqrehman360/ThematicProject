@@ -66,14 +66,18 @@
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
       </div>
 
-      <div v-else-if="players.length === 0" class="text-center py-12">
-        <p class="text-gray-500 text-lg">No players found</p>
+      <div v-else-if="players.length === 0" class="text-center py-20 bg-gradient-to-br from-indigo-50 to-violet-50 rounded-2xl">
+        <svg class="w-20 h-20 mx-auto text-indigo-300 mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <h2 class="text-2xl font-bold text-gray-900 mb-2">No players found nearby yet</h2>
+        <p class="text-gray-600">Check back soon or broaden your search filters to find more TCG players in your area!</p>
       </div>
 
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <PlayerCard
           v-for="player in players"
-          :key="player.userId"
+          :key="player.id"
           :player="player"
           @preview="openPlayerPreview"
         />
@@ -166,7 +170,7 @@ const loadInitialData = async () => {
 }
 
 const handleSearch = async () => {
-  if (activeTab === 'players') {
+  if (activeTab.value === 'players') {
     await searchPlayers({
       name: searchName.value,
       location: searchLocation.value,

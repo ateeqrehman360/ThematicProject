@@ -13,32 +13,32 @@ export const useFriends = () => {
 
   const loadFriends = async () => {
     if (!userStore.profile) return
-    await friendStore.fetchFriends(userStore.profile.userId)
+    await friendStore.fetchFriends(userStore.profile.id)
   }
 
   const loadRequests = async () => {
     if (!userStore.profile) return
-    await friendStore.fetchRequests(userStore.profile.userId)
+    await friendStore.fetchRequests(userStore.profile.id)
   }
 
-  const handleAddFriend = async (friendId: number) => {
+  const handleAddFriend = async (friendId: string) => {
     if (!userStore.profile) return
-    await friendStore.sendRequest(userStore.profile.userId, friendId)
+    await friendStore.sendRequest(userStore.profile.id, friendId)
   }
 
-  const handleAcceptRequest = async (senderId: number) => {
+  const handleAcceptRequest = async (senderId: string) => {
     if (!userStore.profile) return
-    await friendStore.acceptRequest(userStore.profile.userId, senderId)
+    await friendStore.acceptRequest(userStore.profile.id, senderId)
   }
 
-  const handleRejectRequest = async (senderId: number) => {
+  const handleRejectRequest = async (senderId: string) => {
     if (!userStore.profile) return
-    await friendStore.rejectRequest(userStore.profile.userId, senderId)
+    await friendStore.rejectRequest(userStore.profile.id, senderId)
   }
 
-  const handleBlockUser = async (userId: number) => {
+  const handleBlockUser = async (userId: string) => {
     if (!userStore.profile) return
-    await friendStore.blockUser(userStore.profile.userId, userId)
+    await friendStore.blockUser(userStore.profile.id, userId)
   }
 
   return {

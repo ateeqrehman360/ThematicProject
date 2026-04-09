@@ -9,39 +9,40 @@
     <div v-else class="bg-white rounded-2xl shadow-lg p-8">
       <form @submit.prevent="handleSave" class="space-y-6">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Avatar</label>
-          <div class="flex items-center gap-4">
-            <img v-if="profile?.avatarUrl" :src="profile.avatarUrl" alt="Avatar" class="w-16 h-16 rounded-full object-cover" />
-            <div v-else class="w-16 h-16 rounded-full bg-gray-300 flex items-center justify-center">
-              <span class="text-gray-600">No image</span>
-            </div>
-            <input
-              type="file"
-              accept="image/*"
-              @change="handleAvatarUpload"
-              class="px-4 py-2 border border-gray-300 rounded-lg cursor-pointer"
-            />
-          </div>
-          <p v-if="uploadingAvatar" class="text-sm text-indigo-600 mt-2">Uploading...</p>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Username</label>
+          <input
+            v-model="formData.username"
+            type="text"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+          />
         </div>
 
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+            <label class="block text-sm font-medium text-gray-700 mb-2">City</label>
             <input
-              v-model="formData.fullName"
+              v-model="formData.city"
               type="text"
               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
             />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Location</label>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Area</label>
             <input
-              v-model="formData.location"
+              v-model="formData.area"
               type="text"
               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
             />
           </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
+          <input
+            v-model="formData.dateOfBirth"
+            type="date"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+          />
         </div>
 
         <div>
@@ -73,7 +74,7 @@
           <label class="flex items-center gap-2">
             <input
               type="checkbox"
-              v-model="formData.isPrivateProfile"
+              v-model="formData.isPrivate"
               class="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
             />
             <span class="text-gray-700">Private profile (only friends can see posts)</span>
@@ -112,25 +113,34 @@ const userStore = useUserStore()
 
 const loading = ref(false)
 const error = ref('')
-const uploadingAvatar = ref(false)
 
 const formData = reactive({
-  fullName: '',
-  location: '',
+  username: '',
+  city: '',
+  area: '',
+  dateOfBirth: '',
   bio: '',
   tcgInterests: [] as string[],
-  isPrivateProfile: false
+  isPrivate: false
 })
 
 onMounted(() => {
   if (userStore.profile) {
-    formData.fullName = userStore.profile.fullName
-    formData.location = userStore.profile.location
-    formData.bio = userStore.profile.bio
-    formData.tcgInterests = [...userStore.profile.tcgInterests]
-    formData.isPrivateProfile = userStore.profile.isPrivateProfile || false
+    formData.username = userStore.profile.username
+    formData.city = userStore.profile.city || ''
+    formData.area = userStore.profile.area || ''
+    formData.dateOfBirth = formatDateForInput(userStore.profile.date_of_birth)
+    formData.bio = userStore.profile.bio || ''
+    formData.tcgInterests = [...(userStore.profile.tcg_interests || [])]
+    formData.isPrivate = userStore.profile.is_private || false
   }
 })
+
+const formatDateForInput = (dateStr: string | undefined): string => {
+  if (!dateStr) return ''
+  // Convert ISO date format to input date format (YYYY-MM-DD)
+  return dateStr.split('T')[0]
+}
 
 const toggleInterest = (interest: string) => {
   const index = formData.tcgInterests.indexOf(interest)
@@ -141,32 +151,20 @@ const toggleInterest = (interest: string) => {
   }
 }
 
-const handleAvatarUpload = async (event: Event) => {
-  const file = (event.target as HTMLInputElement).files?.[0]
-  if (!file) return
-
-  uploadingAvatar.value = true
-  try {
-    await userStore.uploadAvatar(file)
-  } catch (err: any) {
-    error.value = err.message || 'Failed to upload avatar'
-  } finally {
-    uploadingAvatar.value = false
-  }
-}
-
 const handleSave = async () => {
   loading.value = true
   error.value = ''
   try {
     await userStore.updateProfile({
-      fullName: formData.fullName,
-      location: formData.location,
+      username: formData.username,
+      city: formData.city,
+      area: formData.area,
+      date_of_birth: formData.dateOfBirth,
       bio: formData.bio,
-      tcgInterests: formData.tcgInterests,
-      isPrivateProfile: formData.isPrivateProfile
+      tcg_interests: formData.tcgInterests,
+      is_private: formData.isPrivate
     } as Partial<User>)
-    router.push('/profile/edit')
+    router.push('/profile')
   } catch (err: any) {
     error.value = err.message || 'Failed to save profile'
   } finally {

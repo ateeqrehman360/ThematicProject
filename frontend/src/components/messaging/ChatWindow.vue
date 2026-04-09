@@ -30,7 +30,7 @@
         v-for="message in currentChat"
         :key="message.messageId"
         :message="message"
-        :isOwn="message.senderId === userStore.profile?.userId"
+        :isOwn="message.senderId === userStore.profile?.id"
       />
     </div>
 
@@ -65,22 +65,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useMessages } from '@/composables/useMessages'
 import { useUserStore } from '@/stores/userStore'
 import { useFriendStore } from '@/stores/friendStore'
 import MessageBubble from './MessageBubble.vue'
 
 interface Props {
-  userId: number
+  userId: string
 }
 
 interface Emits {
   (e: 'close'): void
 }
 
-defineProps<Props>()
-defineEmits<Emits>()
+const props = defineProps<Props>()
+const emit = defineEmits<Emits>()
 
 const userStore = useUserStore()
 const friendStore = useFriendStore()
@@ -95,7 +95,7 @@ onMounted(async () => {
   canMessage.value = await canMessageUser(props.userId)
 })
 
-const sendMessage = async (recipientId: number) => {
+const sendMessage = async (recipientId: string) => {
   await send(recipientId)
 }
 </script>

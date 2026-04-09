@@ -18,17 +18,27 @@
       </div>
     </div>
 
-    <div v-else-if="posts.length === 0" class="text-center py-12">
-      <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m0 0h6m-6-6h-6m0 0H6" />
+    <div v-else-if="posts.length === 0" class="text-center py-20 bg-gradient-to-br from-indigo-50 to-violet-50 rounded-2xl">
+      <svg class="w-20 h-20 mx-auto text-indigo-300 mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v6m0 0v6m0-6h6m0 0h6m-6-6h-6m0 0H6" />
       </svg>
-      <p class="text-gray-500 text-lg">No posts yet. Be the first to share!</p>
+      <h2 class="text-2xl font-bold text-gray-900 mb-2">Nothing here yet</h2>
+      <p class="text-gray-600 mb-6">Be the first to share your TCG collection, find local players, or discuss your favorite games!</p>
+      <button
+        @click="showCreatePostModal = true"
+        class="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Create Your First Post
+      </button>
     </div>
 
     <div v-else class="space-y-6">
       <PostCard
         v-for="post in posts"
-        :key="post.postId"
+        :key="post.id"
         :post="post"
         @like="handleLikePost"
         @delete="handleDeletePost"

@@ -69,10 +69,10 @@ import { supabase } from '@/services/supabaseClient'
 import { useUserStore } from '@/stores/userStore'
 
 interface Props {
-  postId: number
+  postId: string
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 
 const userStore = useUserStore()
 const showModal = ref(false)
@@ -89,7 +89,7 @@ const handleSubmit = async () => {
 
   try {
     await supabase.from('reports').insert({
-      reporter_id: userStore.profile.userId,
+      reporter_id: userStore.profile.id,
       reported_post_id: props.postId,
       reason: reason.value,
       description: description.value,

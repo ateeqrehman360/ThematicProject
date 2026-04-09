@@ -6,14 +6,12 @@ export interface AuthCredentials {
 }
 
 export interface SignupPayload {
-  firstName: string
-  lastName: string
+  username: string
   email: string
   password: string
-  dateOfBirth: string
-  gender: string
-  address: string
-  phoneNumber: string
+  date_of_birth: string
+  city: string
+  area: string
 }
 
 export const authService = {
@@ -27,18 +25,37 @@ export const authService = {
   },
 
   async signup(payload: SignupPayload) {
-    const { data, error } = await supabase.auth.signUp({
-      email: payload.email,
-      password: payload.password,
-      options: {
-        data: {
-          full_name: `${payload.firstName} ${payload.lastName}`,
-          date_of_birth: payload.dateOfBirth,
-          gender: payload.gender,
-          address: payload.address,
-          phone_number: payload.phoneNumber
+    try {
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: payload.email,
+        password: payload.password
+      })
+      if (authError) {
+        console.error('Supabase signup error:', authError)
+        throw authError
+      }
+
+      // Create profile after auth signup
+      if (authData.user?.id) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            id: authData.user.id,
+            username: payload.username,
+            date_of_birth: payload.date_of_birth,
+            city: payload.city,
+            area: payload.area,
+            bio: '',
+            is_private: false,
+            tcg_interests: []
+          })
+        
+        if (profileError) {
+          console.error('Profile creation error:', profileError)
+          throw profileError
         }
       }
+<<<<<<< HEAD
     })
     if (error) throw error
 
@@ -63,6 +80,14 @@ export const authService = {
     if (profileError) throw profileError
 
     return data
+=======
+
+      return authData
+    } catch (err) {
+      console.error('Signup error details:', err)
+      throw err
+    }
+>>>>>>> 9cc979e (Fixed frontend build, matched with schema, and typescript errors)
   },
 
   async logout() {

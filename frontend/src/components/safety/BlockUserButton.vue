@@ -39,10 +39,10 @@ import { useFriendStore } from '@/stores/friendStore'
 import { useUserStore } from '@/stores/userStore'
 
 interface Props {
-  userId: number
+  userId: string
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 
 const friendStore = useFriendStore()
 const userStore = useUserStore()
@@ -53,7 +53,7 @@ const confirmBlock = async () => {
   if (!userStore.profile) return
   blocking.value = true
   try {
-    await friendStore.blockUser(userStore.profile.userId, props.userId)
+    await friendStore.blockUser(userStore.profile.id, props.userId)
     showConfirm.value = false
   } finally {
     blocking.value = false

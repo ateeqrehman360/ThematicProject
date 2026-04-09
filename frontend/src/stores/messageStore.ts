@@ -6,11 +6,11 @@ import type { Message, Conversation } from '@/types/message'
 export const useMessageStore = defineStore('message', () => {
   const conversations = ref<Conversation[]>([])
   const currentChat = ref<Message[]>([])
-  const currentChatUserId = ref<number | null>(null)
+  const currentChatUserId = ref<string | null>(null)
   const loading = ref(false)
   const error = ref<string | null>(null)
 
-  async function fetchConversations(userId: number) {
+  async function fetchConversations(userId: string) {
     loading.value = true
     error.value = null
     try {
@@ -23,7 +23,7 @@ export const useMessageStore = defineStore('message', () => {
     }
   }
 
-  async function fetchMessages(userId: number, otherUserId: number) {
+  async function fetchMessages(userId: string, otherUserId: string) {
     loading.value = true
     error.value = null
     try {
@@ -37,24 +37,23 @@ export const useMessageStore = defineStore('message', () => {
     }
   }
 
-  async function sendMessage(senderId: number, receiverId: number, content: string, imageUrl?: string) {
+  async function sendMessage(senderId: string, receiverId: string, content: string) {
     error.value = null
     try {
       const now = new Date().toISOString()
       const optimisticMessage: Message = {
-        messageId: Math.random(),
-        senderId,
-        senderName: 'You',
-        senderAvatar: '',
-        receiverId,
+        id: Math.random().toString(),
+        sender_id: senderId,
+        sender_name: 'You',
+        sender_avatar: '',
+        receiver_id: receiverId,
         content,
-        imageUrl,
-        timestamp: now,
+        created_at: now,
         isRead: false
       }
       
       currentChat.value.push(optimisticMessage)
-      await messageService.sendMessage(senderId, receiverId, content, imageUrl)
+      await messageService.sendMessage(senderId, receiverId, content)
     } catch (err: any) {
       error.value = err.message || 'Failed to send message'
       throw err

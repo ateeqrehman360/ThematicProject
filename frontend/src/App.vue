@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-gray-50">
-    <nav class="bg-white shadow-md sticky top-0 z-40">
+    <nav v-if="!isAuthPage" class="bg-white shadow-md sticky top-0 z-40">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
           <router-link to="/" class="flex items-center gap-2">
@@ -12,7 +12,7 @@
             <router-link v-if="authStore.isAuthenticated" to="/discovery" class="text-gray-700 hover:text-indigo-600 transition-colors">Discovery</router-link>
             <router-link v-if="authStore.isAuthenticated" to="/messages" class="text-gray-700 hover:text-indigo-600 transition-colors">Messages</router-link>
             <router-link v-if="authStore.isAuthenticated" to="/friends" class="text-gray-700 hover:text-indigo-600 transition-colors">Friends</router-link>
-            <router-link v-if="authStore.isAuthenticated" :to="`/profile/${userStore.profile?.userId}`" class="text-gray-700 hover:text-indigo-600 transition-colors">Profile</router-link>
+            <router-link v-if="authStore.isAuthenticated && currentUserId" :to="'/profile/' + currentUserId" class="text-gray-700 hover:text-indigo-600 transition-colors">Profile</router-link>
             
             <button v-if="authStore.isAuthenticated" @click="handleLogout" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">Logout</button>
             <router-link v-else to="/login" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">Login</router-link>
@@ -32,7 +32,7 @@
         <router-link v-if="authStore.isAuthenticated" to="/discovery" class="block px-4 py-2 text-gray-700 hover:bg-gray-50">Discovery</router-link>
         <router-link v-if="authStore.isAuthenticated" to="/messages" class="block px-4 py-2 text-gray-700 hover:bg-gray-50">Messages</router-link>
         <router-link v-if="authStore.isAuthenticated" to="/friends" class="block px-4 py-2 text-gray-700 hover:bg-gray-50">Friends</router-link>
-        <router-link v-if="authStore.isAuthenticated" :to="`/profile/${userStore.profile?.userId}`" class="block px-4 py-2 text-gray-700 hover:bg-gray-50">Profile</router-link>
+        <router-link v-if="authStore.isAuthenticated && currentUserId" :to="'/profile/' + currentUserId" class="block px-4 py-2 text-gray-700 hover:bg-gray-50">Profile</router-link>
         <button v-if="authStore.isAuthenticated" @click="handleLogout" class="w-full text-left px-4 py-2 text-red-500 hover:bg-gray-50">Logout</button>
         <router-link v-else to="/login" class="block px-4 py-2 text-indigo-600 hover:bg-gray-50">Login</router-link>
       </div>
@@ -45,18 +45,33 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
 import { useUserStore } from '@/stores/userStore'
+import { useRoute } from 'vue-router'
 import router from '@/router'
 import { authService } from '@/services/authService'
+import { supabase } from '@/services/supabaseClient'
 
 const authStore = useAuthStore()
 const userStore = useUserStore()
+const route = useRoute()
 const mobileMenuOpen = ref(false)
+const currentUserId = ref<string | null>(null)
+
+const isAuthPage = computed(() => {
+  return ['LoginView', 'SignupView'].includes(route.name as string) || 
+         route.path === '/login' || 
+         route.path === '/signup'
+})
 
 onMounted(async () => {
   try {
+    // Get the current user from Supabase auth
+    const { data } = await supabase.auth.getUser()
+    currentUserId.value = data.user?.id ?? null
+
+    // Initialize auth store
     await authStore.initAuth()
     if (authStore.session?.user?.id) {
       // Fetch user profile if authenticated
@@ -65,6 +80,15 @@ onMounted(async () => {
   } catch (err) {
     console.error('App init error:', err)
   }
+
+  // Subscribe to auth state changes
+  supabase.auth.onAuthStateChange((event, session) => {
+    currentUserId.value = session?.user?.id ?? null
+  })
+})
+
+onUnmounted(() => {
+  // Cleanup auth listener if needed
 })
 
 const handleLogout = async () => {

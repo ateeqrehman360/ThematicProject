@@ -1,19 +1,21 @@
 export interface Message {
-  messageId: number
-  senderId: number
-  senderName: string
-  senderAvatar: string
-  receiverId: number
+  id: string
+  sender_id: string
+  senderId?: string
+  sender_name: string
+  sender_avatar: string
+  receiver_id: string
   content: string
-  imageUrl?: string
-  timestamp: string
+  created_at: string
+  timestamp?: string
+  messageId?: string
   isRead?: boolean
 }
 
 export interface Conversation {
-  userId: number
-  userName: string
-  userAvatar: string
+  id: string
+  username: string
+  user_avatar: string
   lastMessage: string
   lastMessageTime: string
   unreadCount: number

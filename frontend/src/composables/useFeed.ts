@@ -22,25 +22,25 @@ export const useFeed = () => {
     }
   }
 
-  const handleCreatePost = async (content: string, imageUrl?: string) => {
+  const handleCreatePost = async (content: string, _imageUrl?: string) => {
     if (!userStore.profile) return
-    await feedStore.createPost(userStore.profile.userId, { content, imageUrl })
+    await feedStore.createPost(userStore.profile.id, { content })
     showCreatePostModal.value = false
   }
 
-  const handleLikePost = async (postId: number) => {
+  const handleLikePost = async (postId: string) => {
     if (!userStore.profile) return
-    const post = feedStore.posts.find(p => p.postId === postId)
+    const post = feedStore.posts.find(p => p.id === postId)
     if (post?.isLiked) {
-      await feedStore.unlikePost(postId, userStore.profile.userId)
+      await feedStore.unlikePost(postId, userStore.profile.id)
     } else {
-      await feedStore.likePost(postId, userStore.profile.userId)
+      await feedStore.likePost(postId, userStore.profile.id)
     }
   }
 
-  const handleDeletePost = async (postId: number) => {
+  const handleDeletePost = async (postId: string) => {
     if (!userStore.profile) return
-    await feedStore.deletePost(postId, userStore.profile.userId)
+    await feedStore.deletePost(postId, userStore.profile.id)
   }
 
   return {

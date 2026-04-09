@@ -1,24 +1,24 @@
 export interface Post {
-  postId: number
-  authorId: number
-  authorName: string
-  authorAvatar: string
+  id: string
+  user_id: string
+  author_name: string
+  author_avatar: string
   content: string
-  imageUrl?: string
-  timestamp: string
+  image_url?: string
+  created_at: string
   likes: number
   commentCount: number
   isLiked?: boolean
 }
 
 export interface Comment {
-  commentId: number
-  postId: number
-  authorId: number
-  authorName: string
-  authorAvatar: string
+  id: string
+  post_id: string
+  user_id: string
+  author_name: string
+  author_avatar: string
   content: string
-  timestamp: string
+  created_at: string
 }
 
 export interface CreatePostPayload {

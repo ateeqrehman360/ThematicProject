@@ -10,7 +10,7 @@
     >
       <p class="text-sm break-words">{{ message.content }}</p>
       <p :class="['text-xs mt-1', isOwn ? 'text-indigo-200' : 'text-gray-600']">
-        {{ formatTime(message.timestamp) }}
+        {{ formatTime(message.timestamp || message.created_at) }}
       </p>
     </div>
   </div>

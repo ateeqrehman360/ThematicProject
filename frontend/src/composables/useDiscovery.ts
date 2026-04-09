@@ -1,15 +1,16 @@
 import { computed, ref } from 'vue'
 import { useDiscoveryStore } from '@/stores/discoveryStore'
+import type { Event, Store } from '@/types/report'
 
 export const useDiscovery = () => {
   const discoveryStore = useDiscoveryStore()
   const activeTab = ref<'players' | 'events' | 'stores'>('players')
   const showProfilePreview = ref(false)
   const selectedPlayer = ref<any>(null)
+  const events = ref<Event[]>([])
+  const stores = ref<Store[]>([])
 
   const players = computed(() => discoveryStore.players)
-  const events = computed(() => discoveryStore.events)
-  const stores = computed(() => discoveryStore.stores)
   const filters = computed(() => discoveryStore.filters)
   const loading = computed(() => discoveryStore.loading)
 
@@ -17,12 +18,12 @@ export const useDiscovery = () => {
     await discoveryStore.searchPlayers(params)
   }
 
-  const fetchStores = async (location?: string) => {
-    await discoveryStore.fetchStores(location)
+  const fetchEvents = async () => {
+    events.value = []
   }
 
-  const fetchEvents = async (location?: string, tcgType?: string) => {
-    await discoveryStore.fetchEvents(location, tcgType)
+  const fetchStores = async () => {
+    stores.value = []
   }
 
   const openPlayerPreview = (player: any) => {
@@ -36,8 +37,8 @@ export const useDiscovery = () => {
   }
 
   return {
-    activeTab,
     players,
+    activeTab,
     events,
     stores,
     filters,
@@ -45,8 +46,8 @@ export const useDiscovery = () => {
     showProfilePreview,
     selectedPlayer,
     searchPlayers,
-    fetchStores,
     fetchEvents,
+    fetchStores,
     openPlayerPreview,
     closePlayerPreview
   }

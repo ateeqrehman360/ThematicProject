@@ -9,7 +9,10 @@ export const useUserStore = defineStore('user', () => {
   const error = ref<string | null>(null)
 
   async function fetchUser(userId: string) {
+<<<<<<< HEAD
     console.log('userStore.fetchUser called with:', userId)
+=======
+>>>>>>> 9cc979e (Fixed frontend build, matched with schema, and typescript errors)
     loading.value = true
     error.value = null
     try {
@@ -32,8 +35,12 @@ export const useUserStore = defineStore('user', () => {
     loading.value = true
     error.value = null
     try {
+<<<<<<< HEAD
       const { data: updated, error: serviceError } = await profileService.updateProfile(profile.value.id, data)
       if (serviceError) throw new Error(serviceError)
+=======
+      const updated = await userService.updateUser(profile.value.id, data)
+>>>>>>> 9cc979e (Fixed frontend build, matched with schema, and typescript errors)
       profile.value = updated
       return updated
     } catch (err: any) {
@@ -44,6 +51,7 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+<<<<<<< HEAD
   async function uploadAvatar(file: File) {
     if (!profile.value) throw new Error('No profile loaded')
     
@@ -62,6 +70,8 @@ export const useUserStore = defineStore('user', () => {
     }*/
   }
 
+=======
+>>>>>>> 9cc979e (Fixed frontend build, matched with schema, and typescript errors)
   function setProfile(user: User) {
     profile.value = user
   }
@@ -72,7 +82,6 @@ export const useUserStore = defineStore('user', () => {
     error,
     fetchUser,
     updateProfile,
-    uploadAvatar,
     setProfile
   }
 })

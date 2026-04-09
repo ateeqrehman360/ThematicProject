@@ -25,22 +25,22 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, computed } from 'vue'
 import { useFriendStore } from '@/stores/friendStore'
 import { useUserStore } from '@/stores/userStore'
 
 interface Props {
-  userId: number
+  userId: string
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 
 const friendStore = useFriendStore()
 const userStore = useUserStore()
 
 onMounted(async () => {
   if (userStore.profile) {
-    await friendStore.checkFriendStatus(userStore.profile.userId, props.userId)
+    await friendStore.checkFriendStatus(userStore.profile.id, props.userId)
   }
 })
 
@@ -48,21 +48,19 @@ const status = computed(() => friendStore.status[props.userId] || 'none')
 
 const addFriend = async () => {
   if (userStore.profile) {
-    await friendStore.sendRequest(userStore.profile.userId, props.userId)
+    await friendStore.sendRequest(userStore.profile.id, props.userId)
   }
 }
 
 const acceptFriend = async () => {
   if (userStore.profile) {
-    await friendStore.acceptRequest(userStore.profile.userId, props.userId)
+    await friendStore.acceptRequest(userStore.profile.id, props.userId)
   }
 }
 
 const rejectFriend = async () => {
   if (userStore.profile) {
-    await friendStore.rejectRequest(userStore.profile.userId, props.userId)
+    await friendStore.rejectRequest(userStore.profile.id, props.userId)
   }
 }
-
-import { computed } from 'vue'
 </script>

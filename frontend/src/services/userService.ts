@@ -3,40 +3,38 @@ import type { User } from '@/types/user'
 
 export interface SearchUsersParams {
   interest?: string
-  location?: string
-  name?: string
+  city?: string
+  area?: string
+  username?: string
   limit?: number
 }
 
 export const userService = {
-  async getUserById(userId: number): Promise<User> {
+  async getUserById(userId: string): Promise<User> {
     const { data, error } = await supabase
-      .from('users')
+      .from('profiles')
       .select('*')
-      .eq('user_id', userId)
+      .eq('id', userId)
       .single()
     
     if (error) throw error
     return this.mapDbUserToUser(data)
   },
 
-  async updateUser(userId: number, userData: Partial<User>) {
+  async updateUser(userId: string, userData: Partial<User>) {
     const updateData: Record<string, any> = {}
     
-    if (userData.fullName) updateData.full_name = userData.fullName
     if (userData.bio) updateData.bio = userData.bio
-    if (userData.location) updateData.location = userData.location
+    if (userData.city) updateData.city = userData.city
+    if (userData.area) updateData.area = userData.area
     if (userData.username) updateData.username = userData.username
-    if (userData.tcgInterests) updateData.tcg_interests = userData.tcgInterests
-    if (userData.favouriteCards) updateData.favourite_cards = userData.favouriteCards
-    if (userData.gender) updateData.gender = userData.gender
-    if (userData.phoneNumber) updateData.phone_number = userData.phoneNumber
-    if (userData.isPrivateProfile !== undefined) updateData.is_private_profile = userData.isPrivateProfile
+    if (userData.tcg_interests) updateData.tcg_interests = userData.tcg_interests
+    if (userData.is_private !== undefined) updateData.is_private = userData.is_private
 
     const { data, error } = await supabase
-      .from('users')
+      .from('profiles')
       .update(updateData)
-      .eq('user_id', userId)
+      .eq('id', userId)
       .select()
       .single()
     
@@ -44,32 +42,17 @@ export const userService = {
     return this.mapDbUserToUser(data)
   },
 
-  async uploadUserPhoto(userId: number, file: File): Promise<string> {
-    const fileExt = file.name.split('.').pop()
-    const fileName = `${userId}-${Date.now()}.${fileExt}`
-    const filePath = `user-avatars/${fileName}`
-
-    const { error: uploadError } = await supabase.storage
-      .from('user-photos')
-      .upload(filePath, file)
-    
-    if (uploadError) throw uploadError
-
-    const { data } = supabase.storage
-      .from('user-photos')
-      .getPublicUrl(filePath)
-    
-    return data.publicUrl
-  },
-
   async searchUsers(params: SearchUsersParams): Promise<User[]> {
-    let query = supabase.from('users').select('*')
+    let query = supabase.from('profiles').select('*')
 
-    if (params.name) {
-      query = query.ilike('full_name', `%${params.name}%`)
+    if (params.username) {
+      query = query.ilike('username', `%${params.username}%`)
     }
-    if (params.location) {
-      query = query.ilike('location', `%${params.location}%`)
+    if (params.city) {
+      query = query.ilike('city', `%${params.city}%`)
+    }
+    if (params.area) {
+      query = query.ilike('area', `%${params.area}%`)
     }
     if (params.interest) {
       query = query.contains('tcg_interests', [params.interest])
@@ -86,19 +69,15 @@ export const userService = {
 
   mapDbUserToUser(dbUser: any): User {
     return {
-      userId: dbUser.user_id,
-      fullName: dbUser.full_name,
+      id: dbUser.id,
       username: dbUser.username || '',
       bio: dbUser.bio || '',
-      avatarUrl: dbUser.profile_picture_url || '',
-      location: dbUser.location || '',
-      tcgInterests: dbUser.tcg_interests || [],
-      favouriteCards: dbUser.favourite_cards || [],
-      gender: dbUser.gender,
-      email: dbUser.email,
-      phoneNumber: dbUser.phone_number,
-      dateOfBirth: dbUser.dob,
-      isPrivateProfile: dbUser.is_private_profile || false
+      city: dbUser.city || null,
+      area: dbUser.area || null,
+      date_of_birth: dbUser.date_of_birth || '',
+      is_private: dbUser.is_private || false,
+      tcg_interests: dbUser.tcg_interests || [],
+      created_at: dbUser.created_at || ''
     }
   }
 }

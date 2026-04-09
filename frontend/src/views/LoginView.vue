@@ -55,6 +55,7 @@
 import { ref, computed } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
 import { useRouter } from 'vue-router'
+import { supabase } from '@/services/supabaseClient'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -93,10 +94,29 @@ const handleLogin = async () => {
   if (!isFormValid.value) return
 
   try {
-    await authStore.login(email.value, password.value)
+    // Call Supabase auth directly
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.value,
+      password: password.value
+    })
+
+    // Check for authentication error
+    if (error) {
+      authStore.error = error.message
+      return
+    }
+
+    // Fetch user profile if login succeeded
+    if (data.user?.id) {
+      const { useUserStore } = await import('@/stores/userStore')
+      const userStore = useUserStore()
+      await userStore.fetchUser(data.user.id)
+    }
+
+    // Redirect to feed on successful login
     router.push('/feed')
   } catch (err: any) {
-    console.error('Login error:', err)
+    authStore.error = err.message || 'Login failed'
   }
 }
 </script>

@@ -9,28 +9,34 @@
         </button>
 
         <div class="clear-both flex flex-col items-center mb-4">
-          <img :src="player.avatarUrl" :alt="player.fullName" class="w-20 h-20 rounded-full object-cover mb-3" />
-          <h2 class="text-2xl font-bold text-gray-900 text-center">{{ player.fullName }}</h2>
+          <div class="w-20 h-20 rounded-full bg-indigo-200 flex items-center justify-center text-indigo-700 font-semibold text-2xl mb-3">
+            {{ player.username.charAt(0).toUpperCase() }}
+          </div>
+          <h2 class="text-2xl font-bold text-gray-900 text-center">{{ player.username }}</h2>
           <p class="text-gray-600">@{{ player.username }}</p>
         </div>
 
         <p class="text-gray-700 text-center mb-4">{{ player.bio }}</p>
 
         <div class="mb-4">
-          <p class="text-sm text-gray-600 mb-2">📍 {{ player.location }}</p>
+          <p class="text-sm text-gray-600 mb-2">
+            📍 
+            <span v-if="player.city">{{ player.city }}</span>
+            <span v-if="player.area">, {{ player.area }}</span>
+          </p>
         </div>
 
-        <div v-if="player.tcgInterests.length > 0" class="mb-4">
+        <div v-if="player.tcg_interests.length > 0" class="mb-4">
           <p class="text-sm font-semibold text-gray-700 mb-2">Interests:</p>
           <div class="flex flex-wrap gap-2">
-            <span v-for="interest in player.tcgInterests" :key="interest" class="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full">
+            <span v-for="interest in player.tcg_interests" :key="interest" class="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full">
               {{ interest }}
             </span>
           </div>
         </div>
 
         <div class="flex gap-2">
-          <router-link :to="`/profile/${player.userId}`" @click="emit('close')" class="flex-1 py-2 px-4 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors text-center">
+          <router-link :to="`/profile/${player.id}`" @click="emit('close')" class="flex-1 py-2 px-4 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors text-center">
             View Profile
           </router-link>
           <button @click="emit('close')" class="flex-1 py-2 px-4 bg-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-400 transition-colors">
@@ -53,6 +59,6 @@ interface Emits {
   (e: 'close'): void
 }
 
-defineProps<Props>()
-defineEmits<Emits>()
+const props = defineProps<Props>()
+const emit = defineEmits<Emits>()
 </script>

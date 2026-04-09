@@ -2,39 +2,39 @@ import { supabase } from './supabaseClient'
 import type { Friend, FriendRequest, FriendStatus } from '@/types/friendship'
 
 export const friendService = {
-  async getFriends(userId: number): Promise<Friend[]> {
+  async getFriends(userId: string): Promise<Friend[]> {
     const { data, error } = await supabase
-      .from('friend_requests')
-      .select('receiver_id, sender_id, created_at')
-      .eq('status', 'accepted')
-      .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
+      .from('friendships')
+      .select('user1_id, user2_id, created_at')
+      .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
 
     if (error) throw error
 
-    const friendIds = data.map(req => 
-      req.sender_id === userId ? req.receiver_id : req.sender_id
+    const friendIds = data.map(friendship => 
+      friendship.user1_id === userId ? friendship.user2_id : friendship.user1_id
     )
 
     if (friendIds.length === 0) return []
 
     const { data: users, error: usersError } = await supabase
-      .from('users')
+      .from('profiles')
       .select('*')
-      .in('user_id', friendIds)
+      .in('id', friendIds)
 
     if (usersError) throw usersError
 
-    return users.map(user => ({
-      userId: user.user_id,
-      fullName: user.full_name,
+    return users.map((user, idx) => ({
+      id: user.id,
       username: user.username || '',
-      avatarUrl: user.profile_picture_url || '',
-      location: user.location || '',
-      friendSince: new Date(user.created_at).toISOString()
+      bio: user.bio || '',
+      city: user.city || null,
+      area: user.area || null,
+      tcg_interests: user.tcg_interests || [],
+      created_at: data[idx]?.created_at || new Date().toISOString()
     }))
   },
 
-  async addFriend(userId: number, friendId: number) {
+  async addFriend(userId: string, friendId: string) {
     const { error } = await supabase
       .from('friend_requests')
       .insert({
@@ -46,35 +46,51 @@ export const friendService = {
     if (error) throw error
   },
 
-  async getFriendRequests(userId: number): Promise<FriendRequest[]> {
+  async getFriendRequests(userId: string): Promise<FriendRequest[]> {
     const { data, error } = await supabase
       .from('friend_requests')
-      .select('sender_id, users(user_id, full_name, username, profile_picture_url, location)')
+      .select('sender_id, profiles!sender_id(id, username, bio, city, area, tcg_interests)')
       .eq('receiver_id', userId)
       .eq('status', 'pending')
 
     if (error) throw error
 
-    return data.map(req => ({
-      userId: req.sender_id,
-      fullName: req.users?.full_name || '',
-      username: req.users?.username || '',
-      avatarUrl: req.users?.profile_picture_url || '',
-      location: req.users?.location || ''
-    }))
+    return data.map(req => {
+      const profile = Array.isArray(req.profiles) ? req.profiles[0] : req.profiles
+
+      return {
+        id: req.sender_id,
+        username: profile?.username || '',
+        bio: profile?.bio || '',
+        city: profile?.city || null,
+        area: profile?.area || null,
+        tcg_interests: profile?.tcg_interests || []
+      }
+    })
   },
 
-  async acceptFriendRequest(senderId: number, userId: number) {
-    const { error } = await supabase
+  async acceptFriendRequest(senderId: string, userId: string) {
+    // Update friend_request status
+    const { error: updateError } = await supabase
       .from('friend_requests')
       .update({ status: 'accepted' })
       .eq('sender_id', senderId)
       .eq('receiver_id', userId)
 
-    if (error) throw error
+    if (updateError) throw updateError
+
+    // Create friendship record
+    const { error: friendshipError } = await supabase
+      .from('friendships')
+      .insert({
+        user1_id: senderId,
+        user2_id: userId
+      })
+
+    if (friendshipError) throw friendshipError
   },
 
-  async rejectFriendRequest(senderId: number, userId: number) {
+  async rejectFriendRequest(senderId: string, userId: string) {
     const { error } = await supabase
       .from('friend_requests')
       .delete()
@@ -84,67 +100,80 @@ export const friendService = {
     if (error) throw error
   },
 
-  async getFriendStatus(userId: number, targetUserId: number): Promise<FriendStatus> {
-    const { data, error } = await supabase
+  async getFriendStatus(userId: string, targetUserId: string): Promise<FriendStatus> {
+    // Check if friends
+    const { data: friendship, error: friendshipError } = await supabase
+      .from('friendships')
+      .select('id')
+      .or(
+        `and(user1_id.eq.${userId},user2_id.eq.${targetUserId}),` +
+        `and(user1_id.eq.${targetUserId},user2_id.eq.${userId})`
+      )
+      .single()
+
+    if (!friendshipError && friendship) {
+      return 'friends'
+    }
+
+    // Check if blocked
+    const { data: blocked } = await supabase
+      .from('blocks')
+      .select('id')
+      .or(
+        `and(blocker_id.eq.${userId},blocked_id.eq.${targetUserId}),` +
+        `and(blocker_id.eq.${targetUserId},blocked_id.eq.${userId})`
+      )
+      .single()
+
+    if (blocked) {
+      return 'blocked'
+    }
+
+    // Check friend request status
+    const { data: request } = await supabase
       .from('friend_requests')
-      .select('status')
+      .select('status, sender_id')
       .or(
         `and(sender_id.eq.${userId},receiver_id.eq.${targetUserId}),` +
         `and(sender_id.eq.${targetUserId},receiver_id.eq.${userId})`
       )
       .single()
 
-    if (error && error.code === 'PGRST116') {
-      return 'none'
-    }
-    if (error) throw error
-
-    if (data.status === 'accepted') {
-      return 'friends'
+    if (request?.status === 'pending') {
+      return request.sender_id === userId ? 'pending_sent' : 'pending_received'
     }
 
-    const { data: incomingRequest } = await supabase
-      .from('friend_requests')
-      .select('status')
-      .eq('sender_id', targetUserId)
-      .eq('receiver_id', userId)
-      .single()
-
-    if (incomingRequest?.status === 'pending') {
-      return 'pending_received'
-    }
-
-    return 'pending_sent'
+    return 'none'
   },
 
-  async blockUser(userId: number, blockedUserId: number) {
+  async blockUser(userId: string, blockedUserId: string) {
     const { error } = await supabase
-      .from('blocked_users')
+      .from('blocks')
       .insert({
-        user_id: userId,
-        blocked_user_id: blockedUserId
+        blocker_id: userId,
+        blocked_id: blockedUserId
       })
 
     if (error) throw error
   },
 
-  async unblockUser(userId: number, blockedUserId: number) {
+  async unblockUser(userId: string, blockedUserId: string) {
     const { error } = await supabase
-      .from('blocked_users')
+      .from('blocks')
       .delete()
-      .eq('user_id', userId)
-      .eq('blocked_user_id', blockedUserId)
+      .eq('blocker_id', userId)
+      .eq('blocked_id', blockedUserId)
 
     if (error) throw error
   },
 
-  async isBlocked(userId: number, targetUserId: number): Promise<boolean> {
+  async isBlocked(userId: string, targetUserId: string): Promise<boolean> {
     const { data, error } = await supabase
-      .from('blocked_users')
+      .from('blocks')
       .select('id')
       .or(
-        `and(user_id.eq.${userId},blocked_user_id.eq.${targetUserId}),` +
-        `and(user_id.eq.${targetUserId},blocked_user_id.eq.${userId})`
+        `and(blocker_id.eq.${userId},blocked_id.eq.${targetUserId}),` +
+        `and(blocker_id.eq.${targetUserId},blocked_id.eq.${userId})`
       )
       .single()
 

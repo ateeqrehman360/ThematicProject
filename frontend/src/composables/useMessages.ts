@@ -18,43 +18,42 @@ export const useMessages = () => {
 
   const loadConversations = async () => {
     if (!userStore.profile) return
-    await messageStore.fetchConversations(userStore.profile.userId)
+    await messageStore.fetchConversations(userStore.profile.id)
   }
 
-  const loadChat = async (otherUserId: number) => {
+  const loadChat = async (otherUserId: string) => {
     if (!userStore.profile) return
-    await messageStore.fetchMessages(userStore.profile.userId, otherUserId)
+    await messageStore.fetchMessages(userStore.profile.id, otherUserId)
   }
 
-  const sendMessage = async (receiverId: number) => {
+  const sendMessage = async (receiverId: string) => {
     if (!userStore.profile || !messageInput.value.trim()) return
 
     const areFriends = friendStore.status[receiverId] === 'friends'
     const limitCheck = await messageService.checkMessageLimit(
-      userStore.profile.userId,
+      userStore.profile.id,
       receiverId,
       areFriends
     )
 
     if (!limitCheck.canMessage) {
-      error.value = `You've reached the message limit (${limitCheck.limit}) with this user. Add them as a friend to send unlimited messages.`
       return
     }
 
     await messageStore.sendMessage(
-      userStore.profile.userId,
+      userStore.profile.id,
       receiverId,
       messageInput.value
     )
     messageInput.value = ''
   }
 
-  const canMessageUser = async (receiverId: number): Promise<boolean> => {
+  const canMessageUser = async (receiverId: string): Promise<boolean> => {
     if (!userStore.profile) return false
 
     const areFriends = friendStore.status[receiverId] === 'friends'
     const limitCheck = await messageService.checkMessageLimit(
-      userStore.profile.userId,
+      userStore.profile.id,
       receiverId,
       areFriends
     )

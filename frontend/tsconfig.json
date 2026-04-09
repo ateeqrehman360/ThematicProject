@@ -2,13 +2,30 @@
   "compilerOptions": {
     "target": "ESNext",
     "useDefineForClassFields": true,
+<<<<<<< HEAD
+=======
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+>>>>>>> 9cc979e (Fixed frontend build, matched with schema, and typescript errors)
     "module": "ESNext",
     "moduleResolution": "Node",
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "skipLibCheck": true,
     "strict": true,
+<<<<<<< HEAD
     "jsx": "preserve",
     "jsxImportSource": "vue",
+=======
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+>>>>>>> 9cc979e (Fixed frontend build, matched with schema, and typescript errors)
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
@@ -20,5 +37,15 @@
     "ignoreDeprecations": "6.0"
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"],
+<<<<<<< HEAD
   "references": [{ "path": "./tsconfig.node.json" }]
 }
+=======
+  "exclude": ["node_modules"],
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    }
+  ]
+}
+>>>>>>> 9cc979e (Fixed frontend build, matched with schema, and typescript errors)

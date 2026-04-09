@@ -9,12 +9,14 @@
     </div>
 
     <div v-else class="space-y-3">
-      <div v-for="comment in comments" :key="comment.commentId" class="flex gap-2">
-        <img :src="comment.authorAvatar" :alt="comment.authorName" class="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+      <div v-for="comment in comments" :key="comment.id" class="flex gap-2">
+        <div class="w-8 h-8 rounded-full bg-indigo-200 flex items-center justify-center text-indigo-700 font-semibold text-xs flex-shrink-0">
+          {{ comment.author_name.charAt(0).toUpperCase() }}
+        </div>
         <div class="flex-1 bg-gray-100 rounded-lg p-2">
-          <p class="font-semibold text-sm text-gray-900">{{ comment.authorName }}</p>
+          <p class="font-semibold text-sm text-gray-900">{{ comment.author_name }}</p>
           <p class="text-sm text-gray-700">{{ comment.content }}</p>
-          <p class="text-xs text-gray-500 mt-1">{{ formatTime(comment.timestamp) }}</p>
+          <p class="text-xs text-gray-500 mt-1">{{ formatTime(comment.created_at) }}</p>
         </div>
       </div>
     </div>
@@ -45,10 +47,10 @@ import { useUserStore } from '@/stores/userStore'
 import type { Comment } from '@/types/post'
 
 interface Props {
-  postId: number
+  postId: string
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 
 const userStore = useUserStore()
 const comments = ref<Comment[]>([])
@@ -72,7 +74,7 @@ const handleAddComment = async () => {
 
   addingComment.value = true
   try {
-    await postService.addComment(props.postId, userStore.profile.userId, newComment.value)
+    await postService.addComment(props.postId, userStore.profile.id, newComment.value)
     comments.value = await postService.getComments(props.postId)
     newComment.value = ''
   } catch (err) {

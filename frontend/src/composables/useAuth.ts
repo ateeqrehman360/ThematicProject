@@ -11,8 +11,9 @@ export const useAuth = () => {
   onMounted(async () => {
     try {
       const session = await authService.getSession()
-      if (session) {
-        authStore.setUser({ userId: 0 } as any)
+      if (session?.user?.id) {
+        // Load user profile
+        await userStore.fetchUser(session.user.id)
       }
       initialized.value = true
     } catch (err) {

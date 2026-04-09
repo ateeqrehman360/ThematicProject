@@ -34,7 +34,7 @@ export const useFeedStore = defineStore('feed', () => {
     }
   }
 
-  async function createPost(userId: number, payload: CreatePostPayload) {
+  async function createPost(userId: string, payload: CreatePostPayload) {
     loading.value = true
     error.value = null
     try {
@@ -50,21 +50,21 @@ export const useFeedStore = defineStore('feed', () => {
     }
   }
 
-  async function deletePost(postId: number, userId: number) {
+  async function deletePost(postId: string, userId: string) {
     error.value = null
     try {
       await postService.deletePost(postId, userId)
-      posts.value = posts.value.filter(p => p.postId !== postId)
+      posts.value = posts.value.filter(p => p.id !== postId)
     } catch (err: any) {
       error.value = err.message || 'Failed to delete post'
       throw err
     }
   }
 
-  async function likePost(postId: number, userId: number) {
+  async function likePost(postId: string, userId: string) {
     error.value = null
     try {
-      const post = posts.value.find(p => p.postId === postId)
+      const post = posts.value.find(p => p.id === postId)
       if (post) {
         await postService.likePost(postId, userId)
         post.likes += 1
@@ -76,10 +76,10 @@ export const useFeedStore = defineStore('feed', () => {
     }
   }
 
-  async function unlikePost(postId: number, userId: number) {
+  async function unlikePost(postId: string, userId: string) {
     error.value = null
     try {
-      const post = posts.value.find(p => p.postId === postId)
+      const post = posts.value.find(p => p.id === postId)
       if (post) {
         await postService.unlikePost(postId, userId)
         post.likes = Math.max(0, post.likes - 1)
@@ -91,10 +91,10 @@ export const useFeedStore = defineStore('feed', () => {
     }
   }
 
-  async function addComment(postId: number, userId: number, content: string) {
+  async function addComment(postId: string, userId: string, content: string) {
     error.value = null
     try {
-      const post = posts.value.find(p => p.postId === postId)
+      const post = posts.value.find(p => p.id === postId)
       if (post) {
         await postService.addComment(postId, userId, content)
         post.commentCount += 1

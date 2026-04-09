@@ -5,51 +5,60 @@ export const postService = {
   async getFeed(limit: number = 50, offset: number = 0): Promise<Post[]> {
     const { data, error } = await supabase
       .from('posts')
-      .select('*, users(user_id, full_name, profile_picture_url)')
+      .select('*, profiles(id, username)')
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
 
     if (error) throw error
 
+    // Get like counts
+    const postIds = data.map(p => p.id)
+    const { data: likeCounts } = await supabase
+      .from('post_likes')
+      .select('post_id')
+      .in('post_id', postIds)
+
+    const likesMap = likeCounts?.reduce((acc: any, like: any) => {
+      acc[like.post_id] = (acc[like.post_id] || 0) + 1
+      return acc
+    }, {}) || {}
+
     return data.map(post => ({
-      postId: post.post_id,
-      authorId: post.user_id,
-      authorName: post.users?.full_name || 'Unknown',
-      authorAvatar: post.users?.profile_picture_url || '',
+      id: post.id,
+      user_id: post.user_id,
+      author_name: post.profiles?.username || 'Unknown',
+      author_avatar: '',
       content: post.content,
-      imageUrl: post.image_url,
-      timestamp: post.created_at,
-      likes: post.likes_count || 0,
-      commentCount: post.comment_count || 0,
+      image_url: undefined,
+      created_at: post.created_at,
+      likes: likesMap[post.id] || 0,
+      commentCount: 0,
       isLiked: false
     }))
   },
 
-  async createPost(userId: number, payload: CreatePostPayload) {
+  async createPost(userId: string, payload: CreatePostPayload) {
     const { error } = await supabase
       .from('posts')
       .insert({
         user_id: userId,
-        content: payload.content,
-        image_url: payload.imageUrl,
-        likes_count: 0,
-        comment_count: 0
+        content: payload.content
       })
 
     if (error) throw error
   },
 
-  async deletePost(postId: number, userId: number) {
+  async deletePost(postId: string, userId: string) {
     const { error } = await supabase
       .from('posts')
       .delete()
-      .eq('post_id', postId)
+      .eq('id', postId)
       .eq('user_id', userId)
 
     if (error) throw error
   },
 
-  async likePost(postId: number, userId: number) {
+  async likePost(postId: string, userId: string) {
     const { error } = await supabase
       .from('post_likes')
       .insert({
@@ -58,11 +67,9 @@ export const postService = {
       })
 
     if (error) throw error
-
-    await this.updatePostLikeCount(postId)
   },
 
-  async unlikePost(postId: number, userId: number) {
+  async unlikePost(postId: string, userId: string) {
     const { error } = await supabase
       .from('post_likes')
       .delete()
@@ -70,11 +77,9 @@ export const postService = {
       .eq('user_id', userId)
 
     if (error) throw error
-
-    await this.updatePostLikeCount(postId)
   },
 
-  async isPostLikedByUser(postId: number, userId: number): Promise<boolean> {
+  async isPostLikedByUser(postId: string, userId: string): Promise<boolean> {
     const { data, error } = await supabase
       .from('post_likes')
       .select('id')
@@ -90,29 +95,29 @@ export const postService = {
     return !!data
   },
 
-  async getComments(postId: number): Promise<Comment[]> {
+  async getComments(postId: string): Promise<Comment[]> {
     const { data, error } = await supabase
-      .from('comments')
-      .select('*, users(user_id, full_name, profile_picture_url)')
+      .from('post_comments')
+      .select('*, profiles(id, username)')
       .eq('post_id', postId)
       .order('created_at', { ascending: true })
 
     if (error) throw error
 
     return data.map(comment => ({
-      commentId: comment.comment_id,
-      postId: comment.post_id,
-      authorId: comment.user_id,
-      authorName: comment.users?.full_name || 'Unknown',
-      authorAvatar: comment.users?.profile_picture_url || '',
+      id: comment.id,
+      post_id: comment.post_id,
+      user_id: comment.user_id,
+      author_name: comment.profiles?.username || 'Unknown',
+      author_avatar: '',
       content: comment.content,
-      timestamp: comment.created_at
+      created_at: comment.created_at
     }))
   },
 
-  async addComment(postId: number, userId: number, content: string) {
+  async addComment(postId: string, userId: string, content: string) {
     const { error } = await supabase
-      .from('comments')
+      .from('post_comments')
       .insert({
         post_id: postId,
         user_id: userId,
@@ -120,55 +125,15 @@ export const postService = {
       })
 
     if (error) throw error
-
-    await this.updatePostCommentCount(postId)
   },
 
-  async deleteComment(commentId: number, userId: number) {
-    const { data: comment, error: selectError } = await supabase
-      .from('comments')
-      .select('post_id')
-      .eq('comment_id', commentId)
-      .single()
-
-    if (selectError) throw selectError
-
+  async deleteComment(commentId: string, userId: string) {
     const { error } = await supabase
-      .from('comments')
+      .from('post_comments')
       .delete()
-      .eq('comment_id', commentId)
+      .eq('id', commentId)
       .eq('user_id', userId)
 
     if (error) throw error
-
-    await this.updatePostCommentCount(comment.post_id)
-  },
-
-  async updatePostLikeCount(postId: number) {
-    const { count, error: countError } = await supabase
-      .from('post_likes')
-      .select('*', { count: 'exact' })
-      .eq('post_id', postId)
-
-    if (countError) throw countError
-
-    await supabase
-      .from('posts')
-      .update({ likes_count: count })
-      .eq('post_id', postId)
-  },
-
-  async updatePostCommentCount(postId: number) {
-    const { count, error: countError } = await supabase
-      .from('comments')
-      .select('*', { count: 'exact' })
-      .eq('post_id', postId)
-
-    if (countError) throw countError
-
-    await supabase
-      .from('posts')
-      .update({ comment_count: count })
-      .eq('post_id', postId)
   }
 }

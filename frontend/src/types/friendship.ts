@@ -1,13 +1,14 @@
-export type FriendStatus = 'none' | 'pending_sent' | 'pending_received' | 'friends' | 'blocked'
+export type FriendStatus = 'none' | 'pending' | 'pending_sent' | 'pending_received' | 'friends' | 'blocked'
 
 export interface FriendRequest {
-  userId: number
-  fullName: string
+  id: string
   username: string
-  avatarUrl: string
-  location: string
+  bio: string
+  city: string | null
+  area: string | null
+  tcg_interests: string[]
 }
 
 export interface Friend extends FriendRequest {
-  friendSince: string
+  created_at: string
 }

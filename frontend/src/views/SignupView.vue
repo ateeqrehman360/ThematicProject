@@ -5,27 +5,15 @@
       <p class="text-center text-gray-600 mb-8">Find your TCG community</p>
 
       <form @submit.prevent="handleSignup" class="space-y-4">
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
-            <input
-              v-model="firstName"
-              type="text"
-              required
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-              placeholder="John"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-            <input
-              v-model="lastName"
-              type="text"
-              required
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-              placeholder="Doe"
-            />
-          </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+          <input
+            v-model="username"
+            type="text"
+            required
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+            placeholder="your_username"
+          />
         </div>
 
         <div>
@@ -66,34 +54,23 @@
 
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Gender</label>
-            <select v-model="gender" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
-              <option value="">Select</option>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-              <option value="other">Other</option>
-              <option value="prefer-not">Prefer not to say</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">City</label>
             <input
-              v-model="phoneNumber"
-              type="tel"
+              v-model="city"
+              type="text"
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-              placeholder="+1 234 567 8900"
+              placeholder="New York"
             />
           </div>
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Address</label>
-          <input
-            v-model="address"
-            type="text"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-            placeholder="City, State"
-          />
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Area</label>
+            <input
+              v-model="area"
+              type="text"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+              placeholder="Manhattan"
+            />
+          </div>
         </div>
 
         <p v-if="authStore.error" class="text-sm text-red-500 bg-red-50 p-3 rounded-lg">{{ authStore.error }}</p>
@@ -124,20 +101,18 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 const authStore = useAuthStore()
 
-const firstName = ref('')
-const lastName = ref('')
+const username = ref('')
 const email = ref('')
 const password = ref('')
 const dateOfBirth = ref('')
-const gender = ref('')
-const phoneNumber = ref('')
-const address = ref('')
+const city = ref('')
+const area = ref('')
 const emailError = ref('')
 const passwordError = ref('')
 
 const isFormValid = computed(() => {
-  return firstName.value && lastName.value && email.value && password.value && 
-         dateOfBirth.value && gender.value && !emailError.value && !passwordError.value
+  return username.value && email.value && password.value && 
+         dateOfBirth.value && !emailError.value && !passwordError.value
 })
 
 const validateEmail = () => {
@@ -169,16 +144,24 @@ const handleSignup = async () => {
   if (!isFormValid.value) return
 
   try {
+    const { useUserStore } = await import('@/stores/userStore')
+    const userStore = useUserStore()
+    
     await authStore.signup({
-      firstName: firstName.value,
-      lastName: lastName.value,
+      username: username.value,
       email: email.value,
       password: password.value,
-      dateOfBirth: dateOfBirth.value,
-      gender: gender.value,
-      address: address.value,
-      phoneNumber: phoneNumber.value
+      date_of_birth: dateOfBirth.value,
+      city: city.value,
+      area: area.value
     })
+    
+    // Get the user ID from session and fetch profile
+    if (authStore.session?.user?.id) {
+      await userStore.fetchUser(authStore.session.user.id)
+    }
+    
+    // Redirect to /feed after successful signup
     router.push('/feed')
   } catch (err: any) {
     console.error('Signup error:', err)

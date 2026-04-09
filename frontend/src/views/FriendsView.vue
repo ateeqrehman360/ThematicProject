@@ -34,27 +34,39 @@
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
       </div>
 
-      <div v-else-if="friends.length === 0" class="text-center py-12 bg-gray-50 rounded-xl">
-        <svg class="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292m0 0H8.646m3.354 0H16" />
+      <div v-else-if="friends.length === 0" class="text-center py-20 bg-gradient-to-br from-indigo-50 to-violet-50 rounded-2xl">
+        <svg class="w-20 h-20 mx-auto text-indigo-300 mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18 9v3m0 0v3m0-3h3m0 0h3m0-3a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
-        <p class="text-gray-500 text-lg">No friends yet. Start exploring and adding people!</p>
+        <h2 class="text-2xl font-bold text-gray-900 mb-2">You haven't added any friends yet</h2>
+        <p class="text-gray-600 mb-6">Start exploring and connecting with other players in your area!</p>
+        <router-link
+          to="/discovery"
+          class="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          Head to Discovery
+        </router-link>
       </div>
 
       <div v-else class="space-y-3">
         <div
           v-for="friend in friends"
-          :key="friend.userId"
+          :key="friend.id"
           class="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow"
         >
-          <router-link :to="`/profile/${friend.userId}`" class="flex items-center gap-3 flex-1 hover:opacity-75">
-            <img :src="friend.avatarUrl" :alt="friend.fullName" class="w-12 h-12 rounded-full object-cover" />
+          <router-link :to="`/profile/${friend.id}`" class="flex items-center gap-3 flex-1 hover:opacity-75">
+            <div class="w-12 h-12 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-lg flex-shrink-0">
+              {{ friend.username.charAt(0).toUpperCase() }}
+            </div>
             <div>
-              <h3 class="font-semibold text-gray-900">{{ friend.fullName }}</h3>
-              <p class="text-sm text-gray-500">{{ friend.location }}</p>
+              <h3 class="font-semibold text-gray-900">{{ friend.username }}</h3>
+              <p class="text-sm text-gray-500">{{ friend.city }}{{ friend.area ? `, ${friend.area}` : '' }}</p>
             </div>
           </router-link>
-          <router-link :to="`/messages/${friend.userId}`" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+          <router-link :to="`/messages/${friend.id}`" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
             Message
           </router-link>
         </div>
@@ -74,7 +86,7 @@
       <div v-else class="space-y-3">
         <FriendRequestCard
           v-for="request in requests"
-          :key="request.userId"
+          :key="request.id"
           :request="request"
           @accept="handleAcceptRequest"
           @reject="handleRejectRequest"

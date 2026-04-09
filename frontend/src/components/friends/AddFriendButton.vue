@@ -24,10 +24,10 @@ import { useFriendStore } from '@/stores/friendStore'
 import { useUserStore } from '@/stores/userStore'
 
 interface Props {
-  userId: number
+  userId: string
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 
 const friendStore = useFriendStore()
 const userStore = useUserStore()
@@ -39,7 +39,7 @@ onMounted(async () => {
   if (userStore.profile) {
     loading.value = true
     try {
-      await friendStore.checkFriendStatus(userStore.profile.userId, props.userId)
+      await friendStore.checkFriendStatus(userStore.profile.id, props.userId)
     } finally {
       loading.value = false
     }
@@ -50,7 +50,7 @@ const handleAddFriend = async () => {
   if (!userStore.profile || status.value !== 'none') return
   loading.value = true
   try {
-    await friendStore.sendRequest(userStore.profile.userId, props.userId)
+    await friendStore.sendRequest(userStore.profile.id, props.userId)
   } finally {
     loading.value = false
   }
