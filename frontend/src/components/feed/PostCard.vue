@@ -3,10 +3,9 @@
     <router-link :to="`/profile/${post.user_id}`" class="block p-4 border-b border-gray-200 hover:bg-gray-50">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-full bg-indigo-200 flex items-center justify-center text-indigo-700 font-semibold flex-shrink-0">
-          {{ post.author_name.charAt(0).toUpperCase() }}
+          {{ getUserInitial(post.user_id) }}
         </div>
         <div class="flex-1 min-w-0">
-          <h3 class="font-semibold text-gray-900 truncate">{{ post.author_name }}</h3>
           <p class="text-xs text-gray-500">{{ formatTime(post.created_at) }}</p>
         </div>
       </div>
@@ -30,16 +29,6 @@
         </button>
 
         <button
-          @click="showComments = !showComments"
-          class="flex items-center gap-2 hover:text-indigo-600 transition-colors"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
-          </svg>
-          {{ post.commentCount }}
-        </button>
-
-        <button
           v-if="isOwnPost"
           @click="handleDelete"
           class="flex items-center gap-2 hover:text-red-600 transition-colors ml-auto"
@@ -49,10 +38,6 @@
           </svg>
         </button>
       </div>
-    </div>
-
-    <div v-if="showComments" class="border-t border-gray-200 p-4 bg-gray-50">
-      <CommentThread :postId="post.id" />
     </div>
   </div>
 </template>
@@ -76,9 +61,13 @@ const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const userStore = useUserStore()
-const showComments = ref(false)
 
 const isOwnPost = computed(() => userStore.profile?.id === props.post.user_id)
+
+const getUserInitial = (userId: string) => {
+  // Use first 2 chars of UUID as a deterministic initial
+  return userId.substring(0, 1).toUpperCase()
+}
 
 const handleLike = () => {
   emit('like', props.post.id)

@@ -44,12 +44,9 @@ export const useMessageStore = defineStore('message', () => {
       const optimisticMessage: Message = {
         id: Math.random().toString(),
         sender_id: senderId,
-        sender_name: 'You',
-        sender_avatar: '',
         receiver_id: receiverId,
         content,
-        created_at: now,
-        isRead: false
+        created_at: now
       }
       
       currentChat.value.push(optimisticMessage)

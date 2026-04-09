@@ -28,9 +28,9 @@
 
       <MessageBubble
         v-for="message in currentChat"
-        :key="message.messageId"
+        :key="message.id"
         :message="message"
-        :isOwn="message.senderId === userStore.profile?.id"
+        :isOwn="message.sender_id === userStore.profile?.id"
       />
     </div>
 

@@ -9,10 +9,7 @@ export const useUserStore = defineStore('user', () => {
   const error = ref<string | null>(null)
 
   async function fetchUser(userId: string) {
-<<<<<<< HEAD
     console.log('userStore.fetchUser called with:', userId)
-=======
->>>>>>> 9cc979e (Fixed frontend build, matched with schema, and typescript errors)
     loading.value = true
     error.value = null
     try {
@@ -35,12 +32,8 @@ export const useUserStore = defineStore('user', () => {
     loading.value = true
     error.value = null
     try {
-<<<<<<< HEAD
       const { data: updated, error: serviceError } = await profileService.updateProfile(profile.value.id, data)
       if (serviceError) throw new Error(serviceError)
-=======
-      const updated = await userService.updateUser(profile.value.id, data)
->>>>>>> 9cc979e (Fixed frontend build, matched with schema, and typescript errors)
       profile.value = updated
       return updated
     } catch (err: any) {
@@ -51,27 +44,6 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-<<<<<<< HEAD
-  async function uploadAvatar(file: File) {
-    if (!profile.value) throw new Error('No profile loaded')
-    
-   /* loading.value = true
-    error.value = null
-    try {
-      const url = await userService.uploadUserPhoto(profile.value.userId, file)
-      profile.value.avatarUrl = url
-      await userService.updateUser(profile.value.userId, { avatarUrl: url })
-      return url
-    } catch (err: any) {
-      error.value = err.message || 'Failed to upload avatar'
-      throw err
-    } finally {
-      loading.value = false
-    }*/
-  }
-
-=======
->>>>>>> 9cc979e (Fixed frontend build, matched with schema, and typescript errors)
   function setProfile(user: User) {
     profile.value = user
   }

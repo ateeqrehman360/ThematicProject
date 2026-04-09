@@ -11,10 +11,9 @@
     <div v-else class="space-y-3">
       <div v-for="comment in comments" :key="comment.id" class="flex gap-2">
         <div class="w-8 h-8 rounded-full bg-indigo-200 flex items-center justify-center text-indigo-700 font-semibold text-xs flex-shrink-0">
-          {{ comment.author_name.charAt(0).toUpperCase() }}
+          {{ getUserInitial(comment.user_id) }}
         </div>
         <div class="flex-1 bg-gray-100 rounded-lg p-2">
-          <p class="font-semibold text-sm text-gray-900">{{ comment.author_name }}</p>
           <p class="text-sm text-gray-700">{{ comment.content }}</p>
           <p class="text-xs text-gray-500 mt-1">{{ formatTime(comment.created_at) }}</p>
         </div>
@@ -58,6 +57,23 @@ const newComment = ref('')
 const loading = ref(false)
 const addingComment = ref(false)
 
+const getUserInitial = (userId: string) => {
+  return userId.substring(0, 1).toUpperCase()
+}
+
+const formatTime = (timestamp: string) => {
+  const date = new Date(timestamp)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffMins = Math.floor(diffMs / 60000)
+  const diffHours = Math.floor(diffMs / 3600000)
+  const diffDays = Math.floor(diffMs / 86400000)
+
+  if (diffMins < 60) return `${diffMins}m ago`
+  if (diffHours < 24) return `${diffHours}h ago`
+  return `${diffDays}d ago`
+}
+
 onMounted(async () => {
   loading.value = true
   try {
@@ -82,15 +98,5 @@ const handleAddComment = async () => {
   } finally {
     addingComment.value = false
   }
-}
-
-const formatTime = (timestamp: string) => {
-  const date = new Date(timestamp)
-  const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
-  const diffMins = Math.floor(diffMs / 60000)
-
-  if (diffMins < 60) return `${diffMins}m ago`
-  return new Date(timestamp).toLocaleDateString()
 }
 </script>

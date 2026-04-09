@@ -97,7 +97,6 @@ export const useFeedStore = defineStore('feed', () => {
       const post = posts.value.find(p => p.id === postId)
       if (post) {
         await postService.addComment(postId, userId, content)
-        post.commentCount += 1
       }
     } catch (err: any) {
       error.value = err.message || 'Failed to add comment'

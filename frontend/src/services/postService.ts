@@ -5,7 +5,7 @@ export const postService = {
   async getFeed(limit: number = 50, offset: number = 0): Promise<Post[]> {
     const { data, error } = await supabase
       .from('posts')
-      .select('*, profiles(id, username)')
+      .select('*')
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
 
@@ -26,13 +26,9 @@ export const postService = {
     return data.map(post => ({
       id: post.id,
       user_id: post.user_id,
-      author_name: post.profiles?.username || 'Unknown',
-      author_avatar: '',
       content: post.content,
-      image_url: undefined,
       created_at: post.created_at,
       likes: likesMap[post.id] || 0,
-      commentCount: 0,
       isLiked: false
     }))
   },
@@ -98,7 +94,7 @@ export const postService = {
   async getComments(postId: string): Promise<Comment[]> {
     const { data, error } = await supabase
       .from('post_comments')
-      .select('*, profiles(id, username)')
+      .select('*')
       .eq('post_id', postId)
       .order('created_at', { ascending: true })
 
@@ -108,8 +104,6 @@ export const postService = {
       id: comment.id,
       post_id: comment.post_id,
       user_id: comment.user_id,
-      author_name: comment.profiles?.username || 'Unknown',
-      author_avatar: '',
       content: comment.content,
       created_at: comment.created_at
     }))

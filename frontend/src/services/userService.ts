@@ -24,11 +24,11 @@ export const userService = {
   async updateUser(userId: string, userData: Partial<User>) {
     const updateData: Record<string, any> = {}
     
-    if (userData.bio) updateData.bio = userData.bio
-    if (userData.city) updateData.city = userData.city
-    if (userData.area) updateData.area = userData.area
-    if (userData.username) updateData.username = userData.username
-    if (userData.tcg_interests) updateData.tcg_interests = userData.tcg_interests
+    if (userData.bio !== undefined) updateData.bio = userData.bio
+    if (userData.city !== undefined) updateData.city = userData.city
+    if (userData.area !== undefined) updateData.area = userData.area
+    if (userData.username !== undefined) updateData.username = userData.username
+    if (userData.tcg_interests !== undefined) updateData.tcg_interests = userData.tcg_interests
     if (userData.is_private !== undefined) updateData.is_private = userData.is_private
 
     const { data, error } = await supabase

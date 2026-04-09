@@ -39,7 +39,7 @@
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
           <input
-            v-model="formData.dateOfBirth"
+            v-model="formData.date_of_birth"
             type="date"
             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
           />
@@ -61,7 +61,7 @@
             <label v-for="tcg in TCG_TAGS" :key="tcg" class="flex items-center gap-2">
               <input
                 type="checkbox"
-                :checked="formData.tcgInterests.includes(tcg)"
+                :checked="formData.tcg_interests.includes(tcg)"
                 @change="toggleInterest(tcg)"
                 class="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
               />
@@ -74,7 +74,7 @@
           <label class="flex items-center gap-2">
             <input
               type="checkbox"
-              v-model="formData.isPrivate"
+              v-model="formData.is_private"
               class="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
             />
             <span class="text-gray-700">Private profile (only friends can see posts)</span>
@@ -118,10 +118,10 @@ const formData = reactive({
   username: '',
   city: '',
   area: '',
-  dateOfBirth: '',
+  date_of_birth: '',
   bio: '',
-  tcgInterests: [] as string[],
-  isPrivate: false
+  tcg_interests: [] as string[],
+  is_private: false
 })
 
 onMounted(() => {
@@ -129,10 +129,10 @@ onMounted(() => {
     formData.username = userStore.profile.username
     formData.city = userStore.profile.city || ''
     formData.area = userStore.profile.area || ''
-    formData.dateOfBirth = formatDateForInput(userStore.profile.date_of_birth)
+    formData.date_of_birth = formatDateForInput(userStore.profile.date_of_birth)
     formData.bio = userStore.profile.bio || ''
-    formData.tcgInterests = [...(userStore.profile.tcg_interests || [])]
-    formData.isPrivate = userStore.profile.is_private || false
+    formData.tcg_interests = [...(userStore.profile.tcg_interests || [])]
+    formData.is_private = userStore.profile.is_private || false
   }
 })
 
@@ -143,11 +143,11 @@ const formatDateForInput = (dateStr: string | undefined): string => {
 }
 
 const toggleInterest = (interest: string) => {
-  const index = formData.tcgInterests.indexOf(interest)
+  const index = formData.tcg_interests.indexOf(interest)
   if (index > -1) {
-    formData.tcgInterests.splice(index, 1)
+    formData.tcg_interests.splice(index, 1)
   } else {
-    formData.tcgInterests.push(interest)
+    formData.tcg_interests.push(interest)
   }
 }
 
@@ -159,10 +159,10 @@ const handleSave = async () => {
       username: formData.username,
       city: formData.city,
       area: formData.area,
-      date_of_birth: formData.dateOfBirth,
+      date_of_birth: formData.date_of_birth,
       bio: formData.bio,
-      tcg_interests: formData.tcgInterests,
-      is_private: formData.isPrivate
+      tcg_interests: formData.tcg_interests,
+      is_private: formData.is_private
     } as Partial<User>)
     router.push('/profile')
   } catch (err: any) {

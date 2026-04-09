@@ -16,29 +16,41 @@ export const messageService = {
     return data.map(msg => ({
       id: msg.id,
       sender_id: msg.sender_id,
-      sender_name: msg.sender_name || '',
-      sender_avatar: msg.sender_avatar || '',
       receiver_id: msg.receiver_id,
       content: msg.content,
-      created_at: msg.created_at,
-      isRead: msg.is_read
+      created_at: msg.created_at
     }))
   },
 
   async getConversations(userId: string): Promise<Conversation[]> {
-    const { data, error } = await supabase
-      .rpc('get_conversations', { p_user_id: userId })
+    // Get all unique users I have messaged
+    const { data: messages, error } = await supabase
+      .from('direct_messages')
+      .select('sender_id, receiver_id')
+      .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
 
     if (error) throw error
 
-    return data.map((conv: any) => ({
-      id: conv.other_user_id,
-      username: conv.other_user_name,
-      user_avatar: conv.other_user_avatar,
-      lastMessage: conv.last_message,
-      lastMessageTime: conv.last_message_time,
-      unreadCount: conv.unread_count || 0,
-      isBlocked: conv.is_blocked || false
+    // Extract unique user IDs
+    const userIds = new Set<string>()
+    messages.forEach(msg => {
+      if (msg.sender_id !== userId) userIds.add(msg.sender_id)
+      if (msg.receiver_id !== userId) userIds.add(msg.receiver_id)
+    })
+
+    if (userIds.size === 0) return []
+
+    // Get profile info for those users
+    const { data: profiles, error: profileError } = await supabase
+      .from('profiles')
+      .select('id, username')
+      .in('id', Array.from(userIds))
+
+    if (profileError) throw profileError
+
+    return profiles.map(profile => ({
+      user_id: profile.id,
+      username: profile.username
     }))
   },
 

@@ -55,39 +55,12 @@ export const authService = {
           throw profileError
         }
       }
-<<<<<<< HEAD
-    })
-    if (error) throw error
-
-    const user = data.user
-    if (!user) {
-      throw new Error('User created but no user returned')
-    }
-
-    const username = `${payload.firstName} ${payload.lastName}`.trim()
-
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .insert({
-        id: user.id,
-        username,
-        bio: '',
-        city: '',
-        area: '',
-        is_private: false
-      })
-
-    if (profileError) throw profileError
-
-    return data
-=======
 
       return authData
     } catch (err) {
       console.error('Signup error details:', err)
       throw err
     }
->>>>>>> 9cc979e (Fixed frontend build, matched with schema, and typescript errors)
   },
 
   async logout() {
