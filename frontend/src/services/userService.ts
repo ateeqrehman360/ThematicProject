@@ -10,15 +10,15 @@ export interface SearchUsersParams {
 }
 
 export const userService = {
-  async getUserById(userId: string): Promise<User> {
+  async getUserById(userId: string): Promise<User | null> {
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
-      .single()
+      .limit(1)
     
-    if (error) throw error
-    return this.mapDbUserToUser(data)
+    if (error || !data || data.length === 0) return null
+    return this.mapDbUserToUser(data[0])
   },
 
   async updateUser(userId: string, userData: Partial<User>) {
@@ -36,10 +36,10 @@ export const userService = {
       .update(updateData)
       .eq('id', userId)
       .select()
-      .single()
+      .limit(1)
     
-    if (error) throw error
-    return this.mapDbUserToUser(data)
+    if (error || !data || data.length === 0) throw error || new Error('Update failed')
+    return this.mapDbUserToUser(data[0])
   },
 
   async searchUsers(params: SearchUsersParams): Promise<User[]> {

@@ -106,15 +106,11 @@ const handleLogin = async () => {
       return
     }
 
-    // Fetch user profile if login succeeded
-    if (data.user?.id) {
-      const { useUserStore } = await import('@/stores/userStore')
-      const userStore = useUserStore()
-      await userStore.fetchUser(data.user.id)
-    }
-
     // Redirect to feed on successful login
-    router.push('/feed')
+    // Profile will be fetched when needed
+    if (data.user?.id) {
+      router.push('/feed')
+    }
   } catch (err: any) {
     authStore.error = err.message || 'Login failed'
   }

@@ -10,10 +10,12 @@ export const profileService = {
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single()
+        .limit(1)
 
       if (error) throw error
-      return { data, error: null }
+      
+      // Return first result if exists, otherwise null
+      return { data: data && data.length > 0 ? data[0] : null, error: null }
     } catch (err: any) {
       console.error('Error in profileService (getProfile):', err.message)
       return { data: null, error: err.message }
@@ -28,10 +30,12 @@ export const profileService = {
         .update(updates)
         .eq('id', userId)
         .select()
-        .single()
+        .limit(1)
 
       if (error) throw error
-      return { data, error: null }
+      
+      // Return first result if exists
+      return { data: data && data.length > 0 ? data[0] : null, error: null }
     } catch (err: any) {
       console.error('Error in profileService (updateProfile):', err.message)
       return { data: null, error: err.message }

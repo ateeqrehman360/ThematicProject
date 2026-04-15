@@ -98,15 +98,15 @@ onMounted(async () => {
       .from('profiles')
       .select('*')
       .eq('id', userId)
-      .single()
+      .limit(1)
 
-    if (profileError || !profileData) {
+    if (profileError || !profileData || profileData.length === 0) {
       viewedProfile.value = null
       userPosts.value = []
       return
     }
 
-    viewedProfile.value = profileData as User
+    viewedProfile.value = profileData[0] as User
 
     // Check friend status if not own profile
     if (!isOwnProfile.value && authId) {

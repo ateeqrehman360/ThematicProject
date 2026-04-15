@@ -102,16 +102,16 @@ export const friendService = {
 
   async getFriendStatus(userId: string, targetUserId: string): Promise<FriendStatus> {
     // Check if friends
-    const { data: friendship, error: friendshipError } = await supabase
+    const { data: friendship } = await supabase
       .from('friendships')
       .select('id')
       .or(
         `and(user1_id.eq.${userId},user2_id.eq.${targetUserId}),` +
         `and(user1_id.eq.${targetUserId},user2_id.eq.${userId})`
       )
-      .single()
+      .limit(1)
 
-    if (!friendshipError && friendship) {
+    if (friendship && friendship.length > 0) {
       return 'friends'
     }
 
@@ -123,9 +123,9 @@ export const friendService = {
         `and(blocker_id.eq.${userId},blocked_id.eq.${targetUserId}),` +
         `and(blocker_id.eq.${targetUserId},blocked_id.eq.${userId})`
       )
-      .single()
+      .limit(1)
 
-    if (blocked) {
+    if (blocked && blocked.length > 0) {
       return 'blocked'
     }
 
@@ -137,10 +137,10 @@ export const friendService = {
         `and(sender_id.eq.${userId},receiver_id.eq.${targetUserId}),` +
         `and(sender_id.eq.${targetUserId},receiver_id.eq.${userId})`
       )
-      .single()
+      .limit(1)
 
-    if (request?.status === 'pending') {
-      return request.sender_id === userId ? 'pending_sent' : 'pending_received'
+    if (request && request.length > 0 && request[0]?.status === 'pending') {
+      return request[0].sender_id === userId ? 'pending_sent' : 'pending_received'
     }
 
     return 'none'
