@@ -38,3 +38,20 @@ Run the development server:
    
 The app will connect to the hosted Supabase project automatically. There is no local database to set up.
 
+Schema Overview
+-----------
+The database schema is defined in supabase/migrations/20260211045613_initial_schema.sql
+
+Also referenced in FINAL_SCHEMA.md
+
+Future Improvements
+--------------
+These features were considered but not implemented within the project timeframe:
+
+Notifications — alert users when they receive a friend request or message
+
+Moderation dashboard — a dedicated dashboard for moderators to review reports and keep the community safe.
+
+Profile pictures — the ability for users to upload and customize their own avatars.
+
+Private messaging restrictions — currently any user can message any other, this could be limited to friends only
