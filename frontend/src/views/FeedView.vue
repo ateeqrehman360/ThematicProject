@@ -69,13 +69,27 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useFeed } from '@/composables/useFeed'
+import { useUserStore } from '@/stores/userStore'
+import { useCurrentUser } from '@/composables/useCurrentUser'
 import PostCard from '@/components/feed/PostCard.vue'
 import CreatePostModal from '@/components/feed/CreatePostModal.vue'
 
 const { posts, loading, hasMore, loadFeed, loadMoreFeed, handleCreatePost: handleCreate, handleLikePost, handleDeletePost } = useFeed()
+const userStore = useUserStore()
 const showCreatePostModal = ref(false)
 
 onMounted(async () => {
+  // Ensure user profile is loaded
+  if (!userStore.profile) {
+    console.log('User profile not loaded in FeedView, loading now...')
+    try {
+      await useCurrentUser()
+      console.log('Profile loaded in FeedView:', userStore.profile)
+    } catch (err) {
+      console.error('Failed to load profile in FeedView:', err)
+    }
+  }
+  
   await loadFeed()
 })
 

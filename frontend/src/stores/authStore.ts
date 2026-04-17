@@ -8,6 +8,7 @@ export const useAuthStore = defineStore('auth', () => {
   const session = ref<any>(null)
   const loading = ref(false)
   const error = ref<string | null>(null)
+  const authInitialized = ref(false)
 
   const isAuthenticated = computed(() => !!session.value)
 
@@ -60,10 +61,14 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const sess = await authService.getSession()
       session.value = sess
+      console.log('Auth initialized. Session:', !!sess)
     } catch (err: any) {
       error.value = err.message || 'Failed to init auth'
+      console.error('Auth init error:', err)
     } finally {
       loading.value = false
+      authInitialized.value = true
+      console.log('authInitialized set to true')
     }
   }
 
@@ -76,6 +81,7 @@ export const useAuthStore = defineStore('auth', () => {
     session,
     loading,
     error,
+    authInitialized,
     isAuthenticated,
     login,
     signup,

@@ -43,7 +43,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useUserStore } from '@/stores/userStore'
 import type { Post } from '@/types/post'
 import CommentThread from './CommentThread.vue'
@@ -64,12 +64,23 @@ const userStore = useUserStore()
 
 const isOwnPost = computed(() => userStore.profile?.id === props.post.user_id)
 
+onMounted(() => {
+  // Ensure post has required properties
+  if (props.post.likes === undefined) {
+    console.warn('Post missing likes property:', props.post)
+  }
+  if (props.post.isLiked === undefined) {
+    console.warn('Post missing isLiked property:', props.post)
+  }
+})
+
 const getUserInitial = (userId: string) => {
   // Use first 2 chars of UUID as a deterministic initial
   return userId.substring(0, 1).toUpperCase()
 }
 
 const handleLike = () => {
+  console.log('Like button clicked for post:', props.post.id, 'Current state:', { likes: props.post.likes, isLiked: props.post.isLiked })
   emit('like', props.post.id)
 }
 

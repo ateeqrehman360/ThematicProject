@@ -2,7 +2,8 @@ import { supabase } from './supabaseClient'
 import type { Post, Comment, CreatePostPayload } from '@/types/post'
 
 export const postService = {
-  async getFeed(limit: number = 50, offset: number = 0): Promise<Post[]> {
+  async getFeed(limit: number = 50, offset: number = 0, userId?: string): Promise<Post[]> {
+    console.log('Fetching feed with userId:', userId, 'limit:', limit, 'offset:', offset)
     const { data, error } = await supabase
       .from('posts')
       .select('*')
@@ -11,26 +12,43 @@ export const postService = {
 
     if (error) throw error
 
+    if (!data || data.length === 0) {
+      console.log('No posts returned from database')
+      return []
+    }
+
     // Get like counts
     const postIds = data.map(p => p.id)
     const { data: likeCounts } = await supabase
       .from('post_likes')
-      .select('post_id')
+      .select('post_id, user_id')
       .in('post_id', postIds)
 
-    const likesMap = likeCounts?.reduce((acc: any, like: any) => {
-      acc[like.post_id] = (acc[like.post_id] || 0) + 1
-      return acc
-    }, {}) || {}
+    const likesMap: Record<string, number> = {}
+    const userLikesMap: Set<string> = new Set()
 
-    return data.map(post => ({
-      id: post.id,
-      user_id: post.user_id,
-      content: post.content,
-      created_at: post.created_at,
-      likes: likesMap[post.id] || 0,
-      isLiked: false
-    }))
+    likeCounts?.forEach((like: any) => {
+      likesMap[like.post_id] = (likesMap[like.post_id] || 0) + 1
+      if (userId && like.user_id === userId) {
+        userLikesMap.add(like.post_id)
+      }
+    })
+
+    const result = data.map(post => {
+      const postObj: Post = {
+        id: post.id,
+        user_id: post.user_id,
+        content: post.content,
+        created_at: post.created_at,
+        likes: likesMap[post.id] || 0,
+        isLiked: userLikesMap.has(post.id)
+      }
+      console.log('Post loaded:', { id: post.id, likes: postObj.likes, isLiked: postObj.isLiked })
+      return postObj
+    })
+    
+    console.log('Feed loaded with', result.length, 'posts')
+    return result
   },
 
   async createPost(userId: string, payload: CreatePostPayload) {

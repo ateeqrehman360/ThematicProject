@@ -133,6 +133,8 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useDiscovery } from '@/composables/useDiscovery'
+import { useUserStore } from '@/stores/userStore'
+import { useCurrentUser } from '@/composables/useCurrentUser'
 import { TCG_TAGS } from '@/types/interest'
 import PlayerCard from '@/components/discovery/PlayerCard.vue'
 import EventCard from '@/components/discovery/EventCard.vue'
@@ -155,11 +157,23 @@ const {
   closePlayerPreview
 } = useDiscovery()
 
+const userStore = useUserStore()
 const searchName = ref('')
 const searchLocation = ref('')
 const selectedInterest = ref('')
 
 onMounted(async () => {
+  // Ensure user profile is loaded
+  if (!userStore.profile) {
+    console.log('User profile not loaded in DiscoveryView, loading now...')
+    try {
+      await useCurrentUser()
+      console.log('Profile loaded in DiscoveryView:', userStore.profile)
+    } catch (err) {
+      console.error('Failed to load profile in DiscoveryView:', err)
+    }
+  }
+  
   await loadInitialData()
 })
 

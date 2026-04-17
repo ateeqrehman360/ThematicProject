@@ -23,15 +23,41 @@ export const friendService = {
 
     if (usersError) throw usersError
 
-    return users.map((user, idx) => ({
-      id: user.id,
-      username: user.username || '',
-      bio: user.bio || '',
-      city: user.city || null,
-      area: user.area || null,
-      tcg_interests: user.tcg_interests || [],
-      created_at: data[idx]?.created_at || new Date().toISOString()
-    }))
+    // Get blocked users
+    const { data: blockedData } = await supabase
+      .from('blocks')
+      .select('blocked_id, blocker_id')
+      .or(`blocker_id.eq.${userId},blocked_id.eq.${userId}`)
+
+    const blockedIds = new Set<string>()
+    if (blockedData) {
+      blockedData.forEach(block => {
+        if (block.blocker_id === userId) {
+          blockedIds.add(block.blocked_id)
+        } else {
+          blockedIds.add(block.blocker_id)
+        }
+      })
+    }
+
+    // Create a map of user IDs to friendship creation dates
+    const friendshipDates: Record<string, string> = {}
+    data.forEach(friendship => {
+      const friendId = friendship.user1_id === userId ? friendship.user2_id : friendship.user1_id
+      friendshipDates[friendId] = friendship.created_at
+    })
+
+    return users
+      .filter(user => !blockedIds.has(user.id))
+      .map(user => ({
+        id: user.id,
+        username: user.username || '',
+        bio: user.bio || '',
+        city: user.city || null,
+        area: user.area || null,
+        tcg_interests: user.tcg_interests || [],
+        created_at: friendshipDates[user.id] || new Date().toISOString()
+      }))
   },
 
   async addFriend(userId: string, friendId: string) {

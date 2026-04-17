@@ -99,6 +99,8 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useFriends } from '@/composables/useFriends'
+import { useUserStore } from '@/stores/userStore'
+import { useCurrentUser } from '@/composables/useCurrentUser'
 import FriendRequestCard from '@/components/friends/FriendRequestCard.vue'
 
 const {
@@ -112,7 +114,20 @@ const {
   handleRejectRequest
 } = useFriends()
 
+const userStore = useUserStore()
+
 onMounted(async () => {
+  // Ensure user profile is loaded
+  if (!userStore.profile) {
+    console.log('User profile not loaded in FriendsView, loading now...')
+    try {
+      await useCurrentUser()
+      console.log('Profile loaded in FriendsView:', userStore.profile)
+    } catch (err) {
+      console.error('Failed to load profile in FriendsView:', err)
+    }
+  }
+  
   await loadFriends()
   await loadRequests()
 })

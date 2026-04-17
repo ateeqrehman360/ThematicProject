@@ -28,12 +28,26 @@ export const useFriends = () => {
 
   const handleAcceptRequest = async (senderId: string) => {
     if (!userStore.profile) return
-    await friendStore.acceptRequest(userStore.profile.id, senderId)
+    console.log('handleAcceptRequest called - senderId:', senderId)
+    try {
+      await friendStore.acceptRequest(userStore.profile.id, senderId)
+      console.log('Friend request accepted successfully')
+    } catch (err) {
+      console.error('Error accepting request:', err)
+      throw err
+    }
   }
 
   const handleRejectRequest = async (senderId: string) => {
     if (!userStore.profile) return
-    await friendStore.rejectRequest(userStore.profile.id, senderId)
+    console.log('handleRejectRequest called - senderId:', senderId)
+    try {
+      await friendStore.rejectRequest(userStore.profile.id, senderId)
+      console.log('Friend request rejected successfully')
+    } catch (err) {
+      console.error('Error rejecting request:', err)
+      throw err
+    }
   }
 
   const handleBlockUser = async (userId: string) => {

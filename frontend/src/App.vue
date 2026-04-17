@@ -67,23 +67,54 @@ const isAuthPage = computed(() => {
 
 onMounted(async () => {
   try {
+    console.log('App mounted - initializing auth...')
     // Get the current user from Supabase auth
     const { data } = await supabase.auth.getUser()
-    currentUserId.value = data.user?.id ?? null
+    const userId = data.user?.id
+    currentUserId.value = userId ?? null
+    console.log('Current user ID from auth:', userId)
 
     // Initialize auth store
     await authStore.initAuth()
-    if (authStore.session?.user?.id) {
-      // Fetch user profile if authenticated
-      // This would typically fetch from a users table using the auth user ID
+    console.log('Auth store initialized, session:', !!authStore.session)
+    
+    // Load user profile if authenticated - use userId directly
+    if (userId) {
+      console.log('Loading user profile for:', userId)
+      try {
+        const profile = await userStore.fetchUser(userId)
+        console.log('User profile loaded successfully in App.vue:', profile)
+      } catch (err) {
+        console.error('Failed to load user profile in App.vue:', err)
+      }
+    } else {
+      console.log('No user ID found, skipping profile load')
     }
   } catch (err) {
     console.error('App init error:', err)
   }
 
   // Subscribe to auth state changes
-  supabase.auth.onAuthStateChange((event, session) => {
+  supabase.auth.onAuthStateChange(async (event, session) => {
+    console.log('Auth state changed:', event, 'has session:', !!session)
     currentUserId.value = session?.user?.id ?? null
+    
+    // Load profile when user logs in
+    if (event === 'SIGNED_IN' && session?.user?.id) {
+      console.log('User signed in, loading profile:', session.user.id)
+      try {
+        await userStore.fetchUser(session.user.id)
+        console.log('Profile loaded after sign in')
+      } catch (err) {
+        console.error('Failed to load profile after sign in:', err)
+      }
+    }
+    
+    // Clear profile when user logs out
+    if (event === 'SIGNED_OUT') {
+      console.log('User signed out, clearing profile')
+      userStore.setProfile(null as any)
+    }
   })
 })
 

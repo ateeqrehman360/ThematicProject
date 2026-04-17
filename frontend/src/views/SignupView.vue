@@ -48,8 +48,10 @@
             v-model="dateOfBirth"
             type="date"
             required
+            @blur="validateAge"
             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
           />
+          <p v-if="ageError" class="text-xs text-red-500 mt-1">{{ ageError }}</p>
         </div>
 
         <div class="grid grid-cols-2 gap-4">
@@ -109,10 +111,11 @@ const city = ref('')
 const area = ref('')
 const emailError = ref('')
 const passwordError = ref('')
+const ageError = ref('')
 
 const isFormValid = computed(() => {
   return username.value && email.value && password.value && 
-         dateOfBirth.value && !emailError.value && !passwordError.value
+         dateOfBirth.value && !emailError.value && !passwordError.value && !ageError.value
 })
 
 const validateEmail = () => {
@@ -134,7 +137,32 @@ const validatePassword = () => {
     passwordError.value = 'Password must contain uppercase letter and number'
   } else {
     passwordError.value = ''
+ 
+
+const validateAge = () => {
+  if (!dateOfBirth.value) {
+  validateAge()
+    ageError.value = 'Date of birth is required'
+    return false
   }
+  
+  const today = new Date()
+  const birthDate = new Date(dateOfBirth.value)
+  let age = today.getFullYear() - birthDate.getFullYear()
+  const monthDiff = today.getMonth() - birthDate.getMonth()
+  
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age--
+  }
+  
+  if (age < 13) {
+    ageError.value = 'You must be at least 13 years old to create an account'
+    return false
+  }
+  
+  ageError.value = ''
+  return true
+} }
 }
 
 const handleSignup = async () => {

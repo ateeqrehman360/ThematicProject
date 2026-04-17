@@ -75,10 +75,20 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
+  console.log('Route guard - to:', to.name, 'authInitialized:', authStore.authInitialized, 'isAuthenticated:', authStore.isAuthenticated)
+
+  // Wait for auth to be initialized before checking auth status
+  if (!authStore.authInitialized) {
+    console.log('Auth not initialized yet, allowing navigation to proceed')
+    next()
+    return
+  }
 
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+    console.log('Route requires auth but not authenticated, redirecting to login')
     next('/login')
   } else if (to.meta.requiresGuest && authStore.isAuthenticated) {
+    console.log('Route requires guest but authenticated, redirecting to feed')
     next('/feed')
   } else {
     next()

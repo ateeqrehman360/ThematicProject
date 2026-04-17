@@ -14,11 +14,18 @@ export const useUserStore = defineStore('user', () => {
     error.value = null
     try {
       const { data, error: serviceError } = await profileService.getProfile(userId)
-      if (serviceError) throw new Error(serviceError)
+      console.log('profileService response - data:', data, 'error:', serviceError)
+      if (serviceError) {
+        throw new Error(`Profile service error: ${serviceError}`)
+      }
+      if (!data) {
+        throw new Error(`No profile found for user ${userId}`)
+      }
       profile.value = data
-      console.log('userStore.profile loaded:', data)
+      console.log('userStore.profile loaded successfully:', data)
       return data
     } catch (err: any) {
+      console.error('userStore.fetchUser error:', err.message)
       error.value = err.message || 'Failed to fetch user'
       throw err
     } finally {

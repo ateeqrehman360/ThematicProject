@@ -1,9 +1,11 @@
 import { computed, ref } from 'vue'
 import { useDiscoveryStore } from '@/stores/discoveryStore'
+import { useUserStore } from '@/stores/userStore'
 import type { Event, Store } from '@/types/report'
 
 export const useDiscovery = () => {
   const discoveryStore = useDiscoveryStore()
+  const userStore = useUserStore()
   const activeTab = ref<'players' | 'events' | 'stores'>('players')
   const showProfilePreview = ref(false)
   const selectedPlayer = ref<any>(null)
@@ -15,7 +17,11 @@ export const useDiscovery = () => {
   const loading = computed(() => discoveryStore.loading)
 
   const searchPlayers = async (params: any) => {
-    await discoveryStore.searchPlayers(params)
+    const userId = userStore.profile?.id
+    await discoveryStore.searchPlayers({
+      ...params,
+      userId
+    })
   }
 
   const fetchEvents = async () => {

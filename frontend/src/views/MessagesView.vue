@@ -52,6 +52,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useMessages } from '@/composables/useMessages'
+import { useUserStore } from '@/stores/userStore'
+import { useCurrentUser } from '@/composables/useCurrentUser'
 import ConversationList from '@/components/messaging/ConversationList.vue'
 import ChatWindow from '@/components/messaging/ChatWindow.vue'
 
@@ -61,9 +63,21 @@ const {
   loadConversations
 } = useMessages()
 
+const userStore = useUserStore()
 const selectedConversation = ref<string | null>(null)
 
 onMounted(async () => {
+  // Ensure user profile is loaded
+  if (!userStore.profile) {
+    console.log('User profile not loaded in MessagesView, loading now...')
+    try {
+      await useCurrentUser()
+      console.log('Profile loaded in MessagesView:', userStore.profile)
+    } catch (err) {
+      console.error('Failed to load profile in MessagesView:', err)
+    }
+  }
+  
   await loadConversations()
 })
 

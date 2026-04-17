@@ -19,7 +19,6 @@
         <div class="md:col-span-2">
           <h2 class="text-2xl font-bold text-gray-900 mb-4">Posts</h2>
           
-<<<<<<< HEAD
           <div v-if="viewedProfile.is_private && !isOwnProfile && !isFriend" class="text-center py-12 bg-gray-50 rounded-xl">
             <svg class="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -59,9 +58,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/userStore'
+import { useCurrentUser } from '@/composables/useCurrentUser'
 import { useFriendStore } from '@/stores/friendStore'
 import { useFeedStore } from '@/stores/feedStore'
 import { supabase } from '@/services/supabaseClient'
@@ -83,46 +83,79 @@ const userPosts = ref<Post[]>([])
 const isOwnProfile = ref(false)
 const isFriend = ref(false)
 
-const userId = route.params.id as string
-
-onMounted(async () => {
+const loadProfile = async () => {
+  const currentUserId = route.params.id as string
+  console.log('Loading profile for userId:', currentUserId)
   loading.value = true
   try {
     // Get the auth user ID
     const { data: authData } = await supabase.auth.getUser()
     const authId = authData.user?.id
-    isOwnProfile.value = authId === userId
+    isOwnProfile.value = authId === currentUserId
+
+    // Ensure current user profile is loaded in store
+    if (authId && !userStore.profile) {
+      console.log('Loading current user profile in ProfileView...')
+      try {
+        await useCurrentUser()
+      } catch (err) {
+        console.error('Failed to load current user profile:', err)
+      }
+    }
 
     // Fetch the viewed user's profile
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('*')
-      .eq('id', userId)
+      .eq('id', currentUserId)
       .limit(1)
 
     if (profileError || !profileData || profileData.length === 0) {
+      console.log('Profile not found')
       viewedProfile.value = null
       userPosts.value = []
       return
     }
 
     viewedProfile.value = profileData[0] as User
+    console.log('Profile loaded:', viewedProfile.value.username)
 
     // Check friend status if not own profile
     if (!isOwnProfile.value && authId) {
-      await friendStore.checkFriendStatus(authId, userId)
-      isFriend.value = friendStore.status[userId] === 'friends'
+      await friendStore.checkFriendStatus(authId, currentUserId)
+      isFriend.value = friendStore.status[currentUserId] === 'friends'
     }
 
-    // Fetch user's posts
+    // Fetch user's posts with proper structure
     const { data: posts, error: postsError } = await supabase
       .from('posts')
       .select('*')
-      .eq('user_id', userId)
+      .eq('user_id', currentUserId)
       .order('created_at', { ascending: false })
 
     if (!postsError && posts) {
-      userPosts.value = posts as Post[]
+      // Get like counts for these posts
+      const postIds = posts.map(p => p.id)
+      const { data: likeCounts } = await supabase
+        .from('post_likes')
+        .select('post_id, user_id')
+        .in('post_id', postIds)
+
+      const likesMap: Record<string, number> = {}
+      const userLikesMap: Set<string> = new Set()
+
+      likeCounts?.forEach((like: any) => {
+        likesMap[like.post_id] = (likesMap[like.post_id] || 0) + 1
+        if (authId && like.user_id === authId) {
+          userLikesMap.add(like.post_id)
+        }
+      })
+
+      userPosts.value = posts.map(post => ({
+        ...post,
+        likes: likesMap[post.id] || 0,
+        isLiked: userLikesMap.has(post.id)
+      })) as Post[]
     }
   } catch (err) {
     console.error('Failed to load profile:', err)
@@ -131,6 +164,16 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
+}
+
+onMounted(() => {
+  loadProfile()
+})
+
+// Watch for route changes to reload profile when user ID changes
+watch(() => route.params.id, () => {
+  console.log('Route params changed, reloading profile')
+  loadProfile()
 })
 
 const goToEdit = () => {
@@ -141,16 +184,21 @@ const goToEdit = () => {
 
 const handleLikePost = async (postId: string) => {
   if (!userStore.profile) return
-  const post = feedStore.posts.find(p => p.id === postId)
+  const post = userPosts.value.find(p => p.id === postId)
   if (post?.isLiked) {
     await feedStore.unlikePost(postId, userStore.profile.id)
+    post.isLiked = false
+    post.likes = Math.max(0, post.likes - 1)
   } else {
     await feedStore.likePost(postId, userStore.profile.id)
+    post.isLiked = true
+    post.likes = (post.likes || 0) + 1
   }
 }
 
 const handleDeletePost = async (postId: string) => {
   if (!userStore.profile) return
   await feedStore.deletePost(postId, userStore.profile.id)
+  userPosts.value = userPosts.value.filter(p => p.id !== postId)
 }
 </script>
