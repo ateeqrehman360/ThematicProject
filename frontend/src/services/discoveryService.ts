@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient'
+import { friendService } from './friendService'
 import type { DiscoveryUser } from '@/types/report'
 
 export const discoveryService = {
@@ -43,22 +44,8 @@ export const discoveryService = {
 
     // Filter out blocked users if userId is provided
     if (params.userId) {
-      const { data: blockedData } = await supabase
-        .from('blocks')
-        .select('blocked_id, blocker_id')
-        .or(`blocker_id.eq.${params.userId},blocked_id.eq.${params.userId}`)
-
-      if (blockedData) {
-        const blockedIds = new Set<string>()
-        blockedData.forEach(block => {
-          if (block.blocker_id === params.userId) {
-            blockedIds.add(block.blocked_id)
-          } else {
-            blockedIds.add(block.blocker_id)
-          }
-        })
-        profiles = profiles.filter(p => !blockedIds.has(p.id))
-      }
+      const blockedIds = await friendService.getBlockedUserIds(params.userId)
+      profiles = profiles.filter(p => !blockedIds.has(p.id))
     }
 
     return profiles

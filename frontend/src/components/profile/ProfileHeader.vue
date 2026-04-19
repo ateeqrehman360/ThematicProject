@@ -16,6 +16,7 @@
 
         <div class="flex gap-2">
           <AddFriendButton v-if="!isOwnProfile" :userId="profile.id" />
+          <BlockUserButton v-if="!isOwnProfile" :userId="profile.id" />
           <button v-if="isOwnProfile" @click="goToEdit" class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
             Edit Profile
           </button>
@@ -35,6 +36,7 @@
 <script setup lang="ts">
 import type { User } from '@/types/user'
 import AddFriendButton from '@/components/friends/AddFriendButton.vue'
+import BlockUserButton from '@/components/safety/BlockUserButton.vue'
 
 interface Props {
   profile: User

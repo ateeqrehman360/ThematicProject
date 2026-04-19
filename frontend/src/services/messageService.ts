@@ -87,5 +87,19 @@ export const messageService = {
     const canMessage = count < limit
 
     return { canMessage, count, limit }
+  },
+
+  async checkIfBlocked(userId: string, otherUserId: string): Promise<boolean> {
+    const { data, error } = await supabase
+      .from('blocks')
+      .select('id')
+      .or(
+        `and(blocker_id.eq.${userId},blocked_id.eq.${otherUserId}),` +
+        `and(blocker_id.eq.${otherUserId},blocked_id.eq.${userId})`
+      )
+      .limit(1)
+
+    if (error) throw error
+    return data && data.length > 0
   }
 }

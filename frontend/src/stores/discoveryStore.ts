@@ -15,7 +15,7 @@ export const useDiscoveryStore = defineStore('discovery', () => {
     username: ''
   })
 
-  async function searchPlayers(params: { interest?: string; city?: string; area?: string; username?: string; limit?: number } = {}) {
+  async function searchPlayers(params: { interest?: string; city?: string; area?: string; username?: string; limit?: number; userId?: string } = {}) {
     loading.value = true
     error.value = null
     try {

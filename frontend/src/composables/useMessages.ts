@@ -29,6 +29,18 @@ export const useMessages = () => {
   const sendMessage = async (receiverId: string) => {
     if (!userStore.profile || !messageInput.value.trim()) return
 
+    // Check if blocked
+    try {
+      const isBlocked = await messageService.checkIfBlocked(userStore.profile.id, receiverId)
+      if (isBlocked) {
+        console.log('Cannot send message: users are blocked')
+        return
+      }
+    } catch (err) {
+      console.error('Error checking block status:', err)
+      return
+    }
+
     const areFriends = friendStore.status[receiverId] === 'friends'
     const limitCheck = await messageService.checkMessageLimit(
       userStore.profile.id,
@@ -50,6 +62,18 @@ export const useMessages = () => {
 
   const canMessageUser = async (receiverId: string): Promise<boolean> => {
     if (!userStore.profile) return false
+
+    // Check if blocked first
+    try {
+      const isBlocked = await messageService.checkIfBlocked(userStore.profile.id, receiverId)
+      if (isBlocked) {
+        console.log('Cannot message user: users are blocked')
+        return false
+      }
+    } catch (err) {
+      console.error('Error checking block status:', err)
+      return false
+    }
 
     const areFriends = friendStore.status[receiverId] === 'friends'
     const limitCheck = await messageService.checkMessageLimit(

@@ -26,6 +26,17 @@
       >
         Requests ({{ requests.length }})
       </button>
+      <button
+        @click="loadAndShowBlocked"
+        :class="[
+          'px-4 py-2 font-semibold transition-colors',
+          activeTab === 'blocked'
+            ? 'text-indigo-600 border-b-2 border-indigo-600'
+            : 'text-gray-600 hover:text-gray-900'
+        ]"
+      >
+        Blocked ({{ blockedUsers.length }})
+      </button>
     </div>
 
     <!-- Friends Tab -->
@@ -93,6 +104,41 @@
         />
       </div>
     </div>
+
+    <!-- Blocked Users Tab -->
+    <div v-if="activeTab === 'blocked'">
+      <div v-if="loading" class="text-center py-12">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+      </div>
+
+      <div v-else-if="blockedUsers.length === 0" class="text-center py-12 bg-gray-50 rounded-xl">
+        <p class="text-gray-500 text-lg">You haven't blocked anyone</p>
+      </div>
+
+      <div v-else class="space-y-3">
+        <div
+          v-for="user in blockedUsers"
+          :key="user.id"
+          class="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow"
+        >
+          <div class="flex items-center gap-3 flex-1">
+            <div class="w-12 h-12 rounded-full bg-red-600 text-white flex items-center justify-center font-bold text-lg flex-shrink-0">
+              {{ user.username.charAt(0).toUpperCase() }}
+            </div>
+            <div>
+              <h3 class="font-semibold text-gray-900">{{ user.username }}</h3>
+              <p class="text-sm text-gray-500">{{ user.city }}{{ user.area ? `, ${user.area}` : '' }}</p>
+            </div>
+          </div>
+          <button
+            @click="handleUnblock(user.id)"
+            class="px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition-colors"
+          >
+            Unblock
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -107,28 +153,52 @@ const {
   activeTab,
   friends,
   requests,
+  blockedUsers,
   loading,
   loadFriends,
   loadRequests,
+  loadBlockedUsers,
   handleAcceptRequest,
-  handleRejectRequest
+  handleRejectRequest,
+  handleUnblockUser
 } = useFriends()
 
 const userStore = useUserStore()
+
+const loadAndShowBlocked = async () => {
+  activeTab.value = 'blocked'
+  await loadBlockedUsers()
+}
+
+const handleUnblock = async (userId: string) => {
+  await handleUnblockUser(userId)
+  // Reload blocked users list
+  await loadBlockedUsers()
+}
 
 onMounted(async () => {
   // Ensure user profile is loaded
   if (!userStore.profile) {
     console.log('User profile not loaded in FriendsView, loading now...')
     try {
-      await useCurrentUser()
-      console.log('Profile loaded in FriendsView:', userStore.profile)
+      const profile = await useCurrentUser()
+      console.log('Profile loaded in FriendsView:', profile)
+      // Give the store a moment to update
+      await new Promise(resolve => setTimeout(resolve, 100))
     } catch (err) {
       console.error('Failed to load profile in FriendsView:', err)
+      return
     }
+  } else {
+    console.log('Profile already loaded in FriendsView:', userStore.profile)
   }
   
+  console.log('Loading friends for user:', userStore.profile?.id)
   await loadFriends()
+  console.log('Friends loaded:', friends.value.length)
+  
+  console.log('Loading friend requests for user:', userStore.profile?.id)
   await loadRequests()
+  console.log('Requests loaded:', requests.value.length)
 })
 </script>

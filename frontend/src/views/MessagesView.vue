@@ -51,6 +51,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useMessages } from '@/composables/useMessages'
 import { useUserStore } from '@/stores/userStore'
 import { useCurrentUser } from '@/composables/useCurrentUser'
@@ -64,6 +65,8 @@ const {
 } = useMessages()
 
 const userStore = useUserStore()
+const router = useRouter()
+const route = useRoute()
 const selectedConversation = ref<string | null>(null)
 
 onMounted(async () => {
@@ -79,6 +82,13 @@ onMounted(async () => {
   }
   
   await loadConversations()
+
+  // If coming from a friend link (e.g., /messages/userId), select that conversation
+  const friendIdFromRoute = route.params.userId as string | undefined
+  if (friendIdFromRoute) {
+    console.log('Selected conversation from route:', friendIdFromRoute)
+    selectedConversation.value = friendIdFromRoute
+  }
 })
 
 const selectConversation = (userId: string) => {

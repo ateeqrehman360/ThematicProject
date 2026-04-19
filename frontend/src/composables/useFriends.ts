@@ -5,10 +5,11 @@ import { useUserStore } from '@/stores/userStore'
 export const useFriends = () => {
   const friendStore = useFriendStore()
   const userStore = useUserStore()
-  const activeTab = ref<'friends' | 'requests'>('friends')
+  const activeTab = ref<'friends' | 'requests' | 'blocked'>('friends')
 
   const friends = computed(() => friendStore.friends)
   const requests = computed(() => friendStore.requests)
+  const blockedUsers = computed(() => friendStore.blockedUsers)
   const loading = computed(() => friendStore.loading)
 
   const loadFriends = async () => {
@@ -19,6 +20,11 @@ export const useFriends = () => {
   const loadRequests = async () => {
     if (!userStore.profile) return
     await friendStore.fetchRequests(userStore.profile.id)
+  }
+
+  const loadBlockedUsers = async () => {
+    if (!userStore.profile) return
+    await friendStore.fetchBlockedUsers(userStore.profile.id)
   }
 
   const handleAddFriend = async (friendId: string) => {
@@ -50,6 +56,20 @@ export const useFriends = () => {
     }
   }
 
+  const handleUnblockUser = async (userId: string) => {
+    if (!userStore.profile) return
+    console.log('handleUnblockUser called - userId:', userId)
+    try {
+      await friendStore.unblockUser(userStore.profile.id, userId)
+      // Remove from blocked list
+      await loadBlockedUsers()
+      console.log('User unblocked successfully')
+    } catch (err) {
+      console.error('Error unblocking user:', err)
+      throw err
+    }
+  }
+
   const handleBlockUser = async (userId: string) => {
     if (!userStore.profile) return
     await friendStore.blockUser(userStore.profile.id, userId)
@@ -59,12 +79,15 @@ export const useFriends = () => {
     activeTab,
     friends,
     requests,
+    blockedUsers,
     loading,
     loadFriends,
     loadRequests,
+    loadBlockedUsers,
     handleAddFriend,
     handleAcceptRequest,
     handleRejectRequest,
+    handleUnblockUser,
     handleBlockUser
   }
 }

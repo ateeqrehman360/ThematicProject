@@ -137,11 +137,11 @@ const validatePassword = () => {
     passwordError.value = 'Password must contain uppercase letter and number'
   } else {
     passwordError.value = ''
- 
+  }
+}
 
 const validateAge = () => {
   if (!dateOfBirth.value) {
-  validateAge()
     ageError.value = 'Date of birth is required'
     return false
   }
@@ -162,12 +162,12 @@ const validateAge = () => {
   
   ageError.value = ''
   return true
-} }
 }
 
 const handleSignup = async () => {
   validateEmail()
   validatePassword()
+  validateAge()
 
   if (!isFormValid.value) return
 

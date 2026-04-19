@@ -58,32 +58,33 @@ const rejectLoading = ref(false)
 
 const accept = async () => {
   console.log('FriendRequestCard accept clicked for:', props.request.id)
+  if (acceptLoading.value) return // Prevent double-clicks
   acceptLoading.value = true
   try {
-    emit('accept', props.request.id)
+    await emit('accept', props.request.id)
     // Note: Parent (FriendsView) handles the actual accept logic
+    // Loading state will stay until card is removed from the list
+    console.log('FriendRequestCard accept emit completed')
   } catch (err) {
     console.error('Error in FriendRequestCard accept:', err)
-  } finally {
-    // Give parent time to process, then clear loading
-    // This will be cleared by parent when it removes the card
-    setTimeout(() => {
-      acceptLoading.value = false
-    }, 500)
+    // Clear loading on error so user can retry
+    acceptLoading.value = false
   }
 }
 
 const reject = async () => {
   console.log('FriendRequestCard reject clicked for:', props.request.id)
+  if (rejectLoading.value) return // Prevent double-clicks
   rejectLoading.value = true
   try {
-    emit('reject', props.request.id)
+    await emit('reject', props.request.id)
+    // Note: Parent (FriendsView) handles the actual reject logic
+    // Loading state will stay until card is removed from the list
+    console.log('FriendRequestCard reject emit completed')
   } catch (err) {
     console.error('Error in FriendRequestCard reject:', err)
-  } finally {
-    setTimeout(() => {
-      rejectLoading.value = false
-    }, 500)
+    // Clear loading on error so user can retry
+    rejectLoading.value = false
   }
 }
 </script>

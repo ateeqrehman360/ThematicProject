@@ -36,7 +36,7 @@
 
     <div class="border-t bg-white p-4">
       <div v-if="isBlocked" class="text-center text-gray-500 mb-2">
-        <p class="p-2 bg-red-50 text-red-600 rounded text-sm">You have blocked this user</p>
+        <p class="p-2 bg-red-50 text-red-600 rounded text-sm">You cannot message this user (blocked)</p>
       </div>
 
       <div v-else-if="!canMessage" class="text-center text-gray-500 mb-2">
@@ -69,6 +69,7 @@ import { ref, onMounted } from 'vue'
 import { useMessages } from '@/composables/useMessages'
 import { useUserStore } from '@/stores/userStore'
 import { useFriendStore } from '@/stores/friendStore'
+import { messageService } from '@/services/messageService'
 import MessageBubble from './MessageBubble.vue'
 
 interface Props {
@@ -91,6 +92,18 @@ const canMessage = ref(true)
 
 onMounted(async () => {
   await loadChat(props.userId)
+  
+  // Check if blocked
+  if (userStore.profile) {
+    try {
+      const blocked = await messageService.checkIfBlocked(userStore.profile.id, props.userId)
+      isBlocked.value = blocked
+      console.log('Block status for', props.userId, ':', blocked)
+    } catch (err) {
+      console.error('Error checking block status:', err)
+    }
+  }
+  
   const areFriends = friendStore.status[props.userId] === 'friends'
   canMessage.value = await canMessageUser(props.userId)
 })
